@@ -70,7 +70,7 @@ def tbl_tt_rctts_trier_par_lvr():
     tbl_rctts = []
     #OBTENIR la liste de recettes dans chacune
     for num, lvr in enumerate(lst_lvrs_rctts_csv()):
-        tbl_rctts += lst_rctts_depuis_csv(num)
+        tbl_rctts += [lst_rctts_depuis_csv(num)]
     
     return tbl_rctts
 
@@ -159,6 +159,7 @@ def df_lst_epcr(nm_lst_epcr):
 #%% Profil par défaut
 #TODO ..on peut assigner LE trie par défaut? Sinon y a til d'autres choses par défaut?
 #Le nombre de liste d'épicerie qu'on peut voir par défaut au début du programme "Ingrédients.."
+#Où une wbs va être archivé par défaut (montre les options dit veux-tu aller avec ta valeur par défaut ou nn.)
 def dict_infos_prfls_dft_csv():
     """Retirer les informations du fichier texte des profils par défaut. Organiser
     l'information s'y trouvant en:
@@ -166,7 +167,7 @@ def dict_infos_prfls_dft_csv():
         2.Nom de profil : colomnes par défaut.
 
 
-    RETOURNE: {profiils par défauts}
+    RETOURNE: {profils par défauts}
 
 
     @lst_epcrs_par_dft
@@ -204,9 +205,11 @@ def lst_entt_epcrs_par_dft():
 
     #1.NOM du profil par défaut actuel.
     pfl_dft = dict_prfls['Profil_par_defaut'][0]
-
+    lst_clnns_dft = [f'{3+indx}.nm_col' for indx,
+                     nm_col in enumerate(dict_prfls[pfl_dft])]
+    
     #2.LISTE des épiceries par défaut actuel.
-    return ['Nom_de_recette', 'lien_web'] + dict_prfls[pfl_dft]
+    return ['1.Nom_de_recette', '2.Lien_web'] + lst_clnns_dft
 
 
 

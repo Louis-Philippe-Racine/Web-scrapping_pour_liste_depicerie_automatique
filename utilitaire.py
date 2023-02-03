@@ -69,7 +69,7 @@ def boucle_chsr_entr_pls_rctts(txt_présentation, nums_lvr_rctts, nums_rctt,
     """
     #1.AFFICHER si il y a un txt
     if txt_présentation:
-        print(f'{txt_présentation}')
+        print(f'{txt_présentation}\n')
 
     #2.0.OBTENIR les listes hors boucle.
     lst_lvrs_rctts = e_l.lst_rctts_depuis_csv()
@@ -84,28 +84,31 @@ def boucle_chsr_entr_pls_rctts(txt_présentation, nums_lvr_rctts, nums_rctt,
     #2.2.RECETTES d'un livre spécifique.
     elif nums_rctt == 'toutes':
         #2.2.0.AFFICHER recettes du livre
-        for inx, rctt in enumerate(tbl_rctts[nums_lvr_rctts]):
+        for inx, rctt in enumerate(tbl_rctts[nums_lvr_rctts-1]):
             print(f'(indx+1) - {rctt}')
 
     #2.3.RECETTES & LIVRES spécifiques.
     else:
         #2.3.1.BOUCLE d'AFFICHAGE:
         for indx_lvr, lvr in enumerate(nums_lvr_rctts):
+            #2.3.1.0.AFFICHER "# - nm_lvr_rctts: nm_rctt".
             print(f'{indx_lvr} - {lst_lvrs_rctts[lvr-1]}: \
-{tbl_rctts[lvr-1][nums_rctt[indx_lvr]]}')
+{tbl_rctts[lvr-1][nums_rctt[indx_lvr]-1]}')
 
-            #SI les ingrédients sont à ajouter, il n'y a qu'une recette.
+            #2.3.2.AFFICHER les ingrédients à chaque recette si demandé.
             if ingr:
-                for indx, lvr in enumerate(nums_lvr_rctts):
-                    print('\nVoici les informations de "{tbl_rctts[nums_lvr_rctts][nums_rctt]}":\n')
-        
-                    lst_info_rctt = e_l.lst_ingr_rctt_csv(nums_lvr_rctts, nums_rctt)  
-                    #2.3.0.AFFICHER les ingrédients
-                    for indx, ligne_info in enumerate(lst_info_rctt):
-                        if ligne_info == '':
-                            continue
+                #2.3.3.PRÉSENTER les ingrédients.
+                print('\nAvec les ingrédients:\n')
 
-                    print(f'{indx+1} - {ligne_info}')
+                lst_info_rctt = e_l.lst_ingr_rctt_csv(lvr, nums_rctt[indx_lvr])  
+                #2.4.0.AFFICHER les ingrédients
+                for indx_ingr, info in enumerate(lst_info_rctt):
+                    #2.4.1.RETIRER les cases vides.
+                    if not info:
+                        continue
+
+                    #2.5.AFFICHER "# - info".
+                    print(f'{indx+1} - {info}')
 
 
     #3.DEMANDER lequel ou laquelle choisir.
@@ -398,7 +401,7 @@ def un_lw_wbs_rctt_archv(nums_lvr_rctts, nums_rctt):
 
     """
     #0.AFFICHER le nom de la recette archivée et sa liste d'ingrédients
-    txt_pres = "Ce lien web est trouvé à travers les livres de recettes archivées:\n"
+    txt_pres = "Ce lien web est trouvé à travers les livres de recettes archivées:"
     #0.1.DEMANDER si c'est bien cette recette.
     input_txt = "Désirez-vous utiliser les informations de cette recette archivée?\n\
 ( o / n ) : "
@@ -429,7 +432,7 @@ def plsr_lw_wbs_rctts_archv(nums_lvr_rctts, nums_rctt):
     """
     #0.AFFICHER les recttes où le lien web est contenu.
     txt_pres = 'Ce lien web est associé à des recettes déjà archivées!\nVoici dans\
-quel livre de recettes ils se trouvent, ainsi que leur nom et ingrédients:\n'
+quel livre de recettes ils se trouvent, ainsi que leur nom et ingrédients:'
     #0.1.DEMANDER d'ajouter des ingrédients ou nn.
     inpt_txt = "Désirez-vous utiliser les ingrédients (#)d'une de ces recettes?\n\
 ( # / n ) : "
@@ -439,7 +442,7 @@ quel livre de recettes ils se trouvent, ainsi que leur nom et ingrédients:\n'
     #0.3.AFFICHER, DEMANDER et FORCER entrée.
     num_chx = boucle_chsr_entr_pls_rctts(txt_pres, nums_lvr_rctts, 
                                          nums_rctt, inpt_txt, 
-                                         optns_disps, ingr = 'tous'
+                                         optns_disps, ingr='tous'
                                          )
 
  

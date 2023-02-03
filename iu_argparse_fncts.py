@@ -85,7 +85,7 @@ ajouter une recette par (w)eb-scrapping,\n - ajouter une recette (m)anuellement\
 
 
     #2.CHOISIR le livre de recettes à modifier.
-    txt_prsnttn = 'Voici les livres de recettes disponibles\n'
+    txt_prsnttn = 'Voici les livres de recettes disponibles:'
     inpt_txt = '\nDans quel livre de recettes disponible désirez-vous effectuer\
 ce programme?\n (#) : '
     #2.0.OBTENIR le # de recette disponible.
@@ -117,7 +117,7 @@ def voir_une_rctte(num_lvr_rctts):
 
     """   
     #0.AFFICHER les recettes disponibles.
-    txt_présentation = 'Voici la liste des recettes archivées:\n'
+    txt_présentation = 'Voici la liste des recettes archivées:'
     #0.1.DEMANDER si veut voir ou non.
     txt_input = 'Voulez-vous voir les ingrédients \
 / modifier une recette en particulier ?\n( o / n ) : '
@@ -167,7 +167,7 @@ def mod_la_rctt_affchr(num_lvr_rctts, num_rctt):
 
     """
     #0.AFFICHER.
-    txt_pres = 'Cette recette:\n'
+    txt_pres = 'Cette recette:'
     inpt_txt = 'Voulez-vous modifier cette recette ou non?\n( o / n ) : '
     #0.1.AFFICHER, DEMANDER puis FORCER entrée.
     mod_rctt_ou_nn = utl.boucle_chsr_entr_pls_rctts(txt_pres, num_lvr_rctts, num_rctt,
@@ -249,7 +249,7 @@ def aj_rctt_wbs_lvr_csv(num_lvr_rctts):
 
 
 #%% Ingrédients épicerie
-def affchr_epcr_et_chck(nm_fchr_epcr):
+def affchr_epcr_et_chck_exst(nm_fchr_epcr):
     """Vérifier si la liste d'épicerie existe. Si elle n'existe pas, la créer,
     puis afficher les informations dans la liste d'épicerie.
 
@@ -287,11 +287,13 @@ def affchr_epcr_et_chck(nm_fchr_epcr):
     return nm_fchr_epcr
 
 
+
+
 def option_wbs_lst_epcr(nm_fchr_epcr):
     """Retirer les informations d'une recette par web-scrapping (wbs).
 
 
-    RETOURNE: 's', 'continuer', 'OK'
+    RETOURNE: ('s', 'continuer' ou wbs_info), (True or None)
 
 
     @Constuire list - iu_argparse_main
@@ -302,6 +304,7 @@ def option_wbs_lst_epcr(nm_fchr_epcr):
 
 
     #2.CHECK si lien web déjà retiré du web.
+
     #2.1.CHECK LISTE D'ÉPICERIE si lien web présent.
     #RETOURNE 'continuer', le lien web si pas déjà dans la liste d'épicerie.
     lien_web = utl.est_dans_lst_epcr_dj(lien_web, nm_fchr_epcr)
@@ -313,7 +316,7 @@ def option_wbs_lst_epcr(nm_fchr_epcr):
 
     #3.0.SORTIR.
     if lien_web in ['s', 'continuer']:
-        return lien_web
+        return lien_web, None
 
 
     #TODO 3.1.OBTENIR les ingrédients du web par "scrapping".
@@ -329,12 +332,11 @@ def option_wbs_lst_epcr(nm_fchr_epcr):
 
     #6.0.SORTIR.
     if wbs_infos_mod in ['s', 'continuer']:
-        return wbs_infos_mod
+        return wbs_infos_mod, None
 
 
-    #TODO 6.1.AJOUTER scrapped infos aux archives.
-    e_m.aj_lst_a_lst_epcr(wbs_infos_mod, nm_fchr_epcr, 'wbs')
-    return 'OK'
+    #6.RETOURNER la liste d'info de la recette.
+    return wbs_infos_mod, True
 
 
 
@@ -344,7 +346,7 @@ def option_archv_lst_epcr(nm_fchr_epcr):
     la liste d'épicerie.
 
 
-    RETOURNE: 's' ou 'OK'
+    RETOURNE: 's' ou 'lst_infos_rctt_arch'
 
 
     @Ingrédients épicerie
@@ -354,7 +356,7 @@ def option_archv_lst_epcr(nm_fchr_epcr):
     continuer = 'u'
     while continuer == 'u':
         #1.0.AFFICHER les livres de recettes disponibles.
-        txt_prsnttn = 'Les livres de recettes disponibles sont:\n'
+        txt_prsnttn = 'Les livres de recettes disponibles sont:'
         #1.1.DEMANDER un livre de recettes.
         inpt_txt = "Depuis quel livre de recettes désirez-vous extraire les ingrédients \
 d'une recette?\n( # ) : "
@@ -367,7 +369,7 @@ d'une recette?\n( # ) : "
 
         #2.0.
         if num_lvr_rctts == 's':
-            return 's'
+            return 's', None
 
 
         #2.0.5.INDEX doit être int() et pas de s dont isnumeric()
@@ -375,7 +377,7 @@ d'une recette?\n( # ) : "
         
         #2.1.AFFICHER les recettes du livre.
         txt_pres = f'Les recettes du livre de recette {lst_lvrs_rctts[num_lvr_rctts-1]} \
-sont:\n'
+sont:'
         #2.2.DEMANDER une recette.
         inpt_text = "Laquelle de ces recettes aimeriez-vous ajouter à la liste \
 d'épicerie?\n( # ) : "
@@ -407,13 +409,8 @@ d'épicerie?\n( # ) : "
             return 's'
 
 
-    #TODO
     #5.ENVOYER informations.
-    lst_infos_rctt = e_l.lst_ingr_rctt_csv(num_lvr_rctts, num_rctt)
-    e_m.aj_lst_a_lst_epcr(lst_infos_rctt, nm_fchr_epcr, 'archv_lst_epcr')
-
-    return 'OK'
-
+    return e_l.lst_ingr_rctt_csv(num_lvr_rctts, num_rctt)
 
 
 #TODO - mod une info donc show toute la liste. 
@@ -428,4 +425,106 @@ def option_mod_manl_lst_epcr(nm_fchr_epcr):
     @Ingrédients épicerie
 
     """
-    #
+    #TODO afin d'augmenter la rapidité, il n'est pas nécessaire de confirmer chaque changements
+    #individuels.
+
+
+
+
+
+
+#TODO - En général mais itout quoi mettre où parce qu'il me manque la place des titres de recettes.
+#Si il y a des éléments non-triés, demander où les mettre. (Option changer de profil par défaut.)
+def aj_lst_a_lst_epcr(source_info, lst_infos, nm_fchr_epcr):
+    """Ajouter les ingrédients à la liste d'épicerie.
+    
+    
+    RETOURNE:
+
+
+    @options_wbs - iuf - Construire liste - Web-scrapping
+
+    """
+    #1.OBTENIR le df de la liste d'épicerie.
+    df_lst_epcr_ini = e_l.df_lst_epcr(nm_fchr_epcr)
+
+    #2.DIVISER le df en colonnes.
+    lst_lst_epcr_ini = []
+    for col in df_lst_epcr_ini:
+        #OBTENIR "[[lst_rctt], [lst_lwb], [lst_epcr_1], [lst_epcr_2], etc.]
+        lst_lst_epcr_ini += [[df_lst_epcr_ini] + df_lst_epcr_ini[col]]
+
+    #3.TODO trier la liste d'épicerie selon le profil par défaut.
+
+
+    #4.TODO if len(df1) != len(df2) (pas la même liste par défaut au départ?)
+    #Aussi, quand, dans le programme, effectuer cette vérification ?
+    
+
+    #5.ENVOYER la liste d'épicerie
+    e_m.envyr_lst_epcr_csv(nm_fchr_epcr, df_infos_fnl)
+
+
+    return 'OK'
+
+
+
+
+def prtgr_wbs_a_archv_ou_nn(wbs_infos):
+    """Demander si l'utilisateur est intéressé à partager cette liste d'informations
+    à un livre de recettes en particulier ou non.
+    SI OUI : s'occupe de partager les informations demandée.
+
+
+    RETOURNE: 's' ou None
+
+
+    @option_wbs_lst_epcr
+
+    """
+    #1.DEMANDER si les infos sont à ajouter à un livre de recettes ou non.
+    txt_inpt = 'Désirez-vous ajouter cette recette retirée du web dans un livre \
+de recette?\n ( o / n ) : '
+    #1.0.FORCER entrée
+    ajtr_ou_nn = utl.boucle_frc_entr_lwrcs(txt_inpt, ['o', 'n', 's'])
+
+
+    #2.SI OUI, lequel?
+    if ajtr_ou_nn == 'o':
+        #2.0.AFFICHER questions.
+        txt_pres = 'Voici les livres de recettes disponibles.'
+        inpt_txt = 'Dans lequel de ces livres désirez-vous ajouter la recette?\n\
+(#) : '
+        #2.0.1.PRÉPARER les conditions.
+        lst_lvrs_rctts = e_l.lst_lvrs_rctts_csv()
+        lst_nums_lvrs_rctts = [str(x+1) for x, lvr in enumerate(lst_lvrs_rctts)]
+
+        #2.1.FORCER l'entrée
+        num_lvr_rctts = utl.boucle_chsr_entr_pls_rctts(txt_pres,
+                                                       'tous', None,
+                                                       inpt_txt,
+                                                       lst_nums_lvrs_rctts+['s']
+                                                       )
+
+        #2.2.OMETTRE l'option 'sortir'.
+        if num_lvr_rctts != 's':
+            #AJOUTER les informations au livre de recette.
+            e_m.envyr_modif_lvr_rctts_csv(num_lvr_rctts, 'nouvelle', wbs_infos)
+
+
+            #AFFICHER le message de succès
+            print(f"\nCette recette est ajoutée au livre de recette \
+'{lst_lvrs_rctts[num_lvr_rctts-1]}'.\nSi vous désirez l'ajouter dans livre de \
+recette supplémentaire, veuillez utiliser l'option 'Gérer livres recettes' de ce \
+programme..Merci !\n\n")
+
+            return None
+
+
+    #3.
+    if 's' in [ajtr_ou_nn, num_lvr_rctts]:
+        return 's'
+
+
+    #4.ELSE, ajtr_ou_nn == 'n'.
+    return None

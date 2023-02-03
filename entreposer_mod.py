@@ -25,7 +25,8 @@ def mod_lst_infos(lst_infos_rctt):
             1.Modifier indx.nouvelleinfo;
             2.Échanger rang, bouger indx à indx;
             3.Voir la recette;
-            4.Envoyer la recette ou
+            4.Confirmer la recette;
+            5.Supprimer un info (outre 0,1);
             5.Help
 
 
@@ -51,9 +52,10 @@ def mod_lst_infos(lst_infos_rctt):
  - Modifier une de ces informations (#.nouvelleinfo);
  - Échanger le rang des ingrédients dans la liste (#ingr1.#ingr2)
  - (c)onfirmer ces informations;
- - (r)ecommencer le processus avec une autre liste d'info ou
+ - (r)ecommencer le processus avec une autre liste d'info deleter
+ - (d)eleter une information (d.#ingr) ou
  - (h)elp.
-( #.nouvelleinfo / #ingr1.#ingr2 / a / r / h ) : """) 
+( #.nouvelleinfo / #ingr1.#ingr2 / a / r / d.#ingr / h ) : """) 
 
 
         #1.0.(S)ORTIR du programme.
@@ -61,9 +63,11 @@ def mod_lst_infos(lst_infos_rctt):
             return 's'
 
 
+
         #1.1.(R)ECOMMENCER la boucle.
         if dmnde_actn.lower() == 'r':
             return 'continuer'
+
 
 
         #1.2.(V)OIR la recette à jour.
@@ -75,6 +79,7 @@ def mod_lst_infos(lst_infos_rctt):
                 print(f'{indx} - {info}')
 
             continue
+
 
 
         #1.3.(C)ONFIRMER ces informations.
@@ -107,6 +112,11 @@ def mod_lst_infos(lst_infos_rctt):
                 continue
 
 
+            #1.3.5.6.ELSE 's'
+            return 's'
+
+
+
         #1.4.(H)ELP pour l'écriture de modification.
         if dmnde_actn.lower() == 'h':
             print("\n\n\
@@ -120,7 +130,8 @@ Ou encore:\n\
 0.Toasts au ketchup\n\n\n\
  - Pour l'échange d'emplacement des ingrédients dans la liste, inscrivez les numéros \
 associés aux deux ingrédients (donc >1), en format 'chiffre', '.' puis 'chiffre' comme par exemple:\n\
-3.4\n\n\n\
+3.4\n\
+ - Pour 'deleter' une information, inscrivez 'd', '.', puis chiffre de l'index à enlever.n\n\n\
 Autrement,\n - 'v' permet de voir la liste avec les modifications effectuées,\n\n\n\
  - 'c' permet de confirmer la liste actuel et de la partager ainsi.\n\n\
  - 'r' et 's' permettent de sortir de la boucle de modification d'une liste \
@@ -129,38 +140,52 @@ d'information.\n")
             continue
 
 
+
         #1.5.DIVISER l'input.
         lst_modif = dmnde_actn.split('.')
 
-        #1.6.SINON il y a erreur dans l'entrée. 1 car cela change le lien web.
-        if lst_modif[0].isnumeric() and lst_modif[0] != 1:
-            #1.6.0.STR puisque input.
-            index = int(lst_modif[0])
+        #1.6
+        if len(lst_modif) > 1:
+            #1.6.1.SI modifié ou échanger (#.info ou #.#). 1 car cela change le lien web.
+            if lst_modif[0].isnumeric() and lst_modif[0] != 1:
+                #1.6.0.STR puisque input.
+                index = int(lst_modif[0])
             
 
-            #1.6.1.OPTION MODIFICATION. Permet d'enlever l'option échange
-            #avec index = 1 ou 2..
-            if not lst_modif[1].isnumeric():
-                #1.6.1.0.UN nombre > len() veut dire qu'on instaure une nouvelle info.
-                if index > len(lst_infos_mod):
-                    lst_infos_mod += [lst_modif[1]]
+                #1.6.1.1.OPTION MODIFICATION. (#.info)
+                if not lst_modif[1].isnumeric():
+                    #1.6.1.0.UN nombre > len() veut dire qu'on instaure une nouvelle info.
+                    if index > len(lst_infos_mod):
+                        lst_infos_mod += [lst_modif[1]]
+                        continue
+
+
+                    #TODO créer liste des changements de mots (demander si on enregistre comme mots synonymes si
+                    #les infos non numériques changent.) Envoyer cette liste au dictionnaire. ALSO if not index>len() donc else.
+                    #1.6.1.1.SINON on modifie une entrée existante.
+                    lst_infos_mod[index] = lst_modif[1]
                     continue
 
-                #TODO créer liste des changements de mots (demander si on enregistre comme mots synonymes si
-                #les infos non numériques changent.) Envoyer cette liste au dictionnaire. ALSO if not index>len() donc else.
-                #1.6.1.1.SINON on modifie une entrée existante.
-                lst_infos_mod[index] = lst_modif[1]
-                continue
+
+                #1.6.1.2.OPTION ÉCHANGE. (#.#) Si index < 1, pas un ingrédient donc erreur.
+                #Aussi, nécessairement numérique vue le check précédent en 1.6.1.
+                if index > 1:
+                    #ÉCHANGER les positions de manière pythonesque! ;)
+                    (lst_infos_mod[index],
+                     lst_infos_mod[lst_modif[1]]) = (lst_infos_mod[lst_modif[1]],
+                                                     lst_infos_mod[index])
+                    continue
 
 
-            #1.6.2.OPTION ÉCHANGE. Si index < 1, pas un ingrédient donc erreur.
-            #Aussi, nécessairement numérique vue le check précédent en 1.6.1.
-            if index > 1:
-                #ÉCHANGER les positions de manière pythonesque! ;)
-                (lst_infos_mod[index],
-                lst_infos_mod[lst_modif[1]]) = (lst_infos_mod[lst_modif[1]],
-                lst_infos_mod[index])
-                continue
+            #1.6.2.VÉRIFIER si deleter. Vérifier numérique sinon donne erreur next.
+            if lst_modif[0].lower() == 'd' and lst_modif[1].isnumeric():
+                #1.6.2.0.STR can input à la base.
+                lst_modif = int(lst_modif)
+                #1.6.2.1.SI 2<index<len(), l'entrée est valide.
+                if 1<lst_modif[1]<=len(lst_infos_mod):
+                    #1.6.2.2.SUPPRIMER de la liste.
+                    lst_modif = lst_infos_mod.pop(lst_modif)
+
 
         #1.7.ELSE, l'entrée est invalide.
         print('''Cette entrée est invalide. Écrivez "h" pour plus d'information sur
@@ -232,13 +257,13 @@ def envyr_modif_lvr_rctts_csv(num_lvr_rctts, num_rctt, lst_infos_mod):
     @gere_si_lw_wbs_dns_arch - utl - Vérifier si dans archive
 
     """
-    #1.OBTENIR df des recettes du livre de recettes.
+    #1.OBTENIR df du livre de recettes.
     df_rctts = e_l.df_des_rctts_un_lvr(num_lvr_rctts)
-    #2.CRÉER un df avec la liste d'information nouvelle.
+    #2.CRÉER nouveau df avec la liste d'information.
     df_nouv_infos = pd.DataFrame({lst_infos_mod[0]: [lst_infos_mod[1:]]})
 
-    #3.GÉRER le cas où le nom de la recette est modifiée.
-    #Une nouvelle recette -> jamais le cas -> num_rctt = 'nouvelle'.
+    #3.GÉRER le cas de modification d'une recette (enlever l'ancienne recette avant).
+    #Une nouvelle recette -> jamais numérique -> num_rctt = 'nouvelle'.
     if num_rctt.isnumeric():
         #3.0.OBTENIR la liste des noms de recettes.
         lst_rctts = e_l.lst_rctts_depuis_csv(num_lvr_rctts)
@@ -247,7 +272,7 @@ def envyr_modif_lvr_rctts_csv(num_lvr_rctts, num_rctt, lst_infos_mod):
         #3.2.ENLEVER la recette à modifier pour ensuite la remplacer.
         df_rctts = df_rctts.drop(columns=nm_rctts)
 
-    #4.JOINDRE les deux recettes et les arranger en ordre alphabétique.
+    #4.JOINDRE les recettes et les ordonner.
     df_rctts = pd.merge(df_rctts, df_nouv_infos, how='outer', left_index=True,
                             right_index=True).sort_index(axis=1)
 
@@ -319,55 +344,6 @@ d'aujourd'hui ?\n")
 
 
 
-#TODO - En général mais itout quoi mettre où parce qu'il me manque la place des titres de recettes.
-#Si il y a des éléments non-triés, demander où les mettre. (Option changer de profil par défaut.)
-def aj_lst_a_lst_epcr(lst_ou_df_infos_rctt, nm_fchr_epcr, source_ajt):
-    """Ajouter les ingrédients à la liste d'épicerie.
-    
-    
-    RETOURNE:
-
-
-    @options_wbs - iuf - Construire liste - Web-scrapping
-
-    """
-    #0.OBTENIR le chemin d'accès du livre d'épicerie.
-    pth_lst_epcr = f'{utl.chmn_accs_dir_lsts_epcr()}/{nm_fchr_epcr}'
-
-
-    #1.OBTENIR df de la liste d'épicerie.
-    #1.0.La liste peut être vide.
-    try:
-        df_lst_epcr = e_l.df_lst_epcr(nm_fchr_epcr)
-    
-    except pd.errors.EmptyDataError:
-
-
-    #2.
-
-
-    #df.to_csv(rctt_epcr_pth, sep=';', encoding='latin', index=False)
-
-
-    #TODO wbs options - Ajouter la recette dans l'archive.
-    if source_ajt == 'wbs':
-        print('ajoute dans les archvs où?')
-
-
-    #TODO rctt de l'archive options - ..?
-    if source_ajt == 'archv_lst_epcr':
-        print("est-ce qu'il y a des options en particulier?")
-
-
-    #TODO ingrédient manuel options - ..?
-    if source_ajt == 'manl':
-        print('trouver si il y a des options pour ce type.')
-
-    return 'OK'
-
-
-
-
 #TODO
 def mod_lst_epcr(nm_fchr_epcr, df_infos):
     """Gérer la modification de la liste d'épicerie déjà créée
@@ -387,6 +363,8 @@ def envyr_lst_epcr_csv(nm_fchr_epcr, df_infos_fnl):
 
     RETOURNE: None
 
+
+    @creer_nouv_lst_epcr
 
     """
     #0.OBTENIR le chemin d'accès de la liste d'épicerie

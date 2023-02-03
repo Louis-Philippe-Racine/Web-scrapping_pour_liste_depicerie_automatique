@@ -11,7 +11,7 @@ automatique."""
 #IMPORTER les modules créés par Dr. CiDre.
 import iu_argparse_fncts as iuf
 from entreposer_lire import lst_lvrs_rctts_csv, affchr_lsts_epcr_dspnbl
-from entreposer_mod import boucle_mod_rctt_lvr_csv
+from entreposer_mod import boucle_mod_rctt_lvr_csv, aj_lst_a_lst_epcr
 from utilitaire import boucle_frc_entr_lwrcs
 
 
@@ -25,14 +25,19 @@ import subprocess
 subprocess.Popen(['start', 'cmd', '/k',
                   "title  - * Liste d'épicerie automatique par web-scraping * - & type epicerie_startup.txt"], shell=True)
 
+
+#TODO print quel paramètre par défauts ils utilisent, et / ou quel profil.
+#TODO modifier le txt de départ pour y incorporer le profil par défaut.
+print("I luv u mang")
+
+
 #DÉBUTE ce programme et oriente selon l'entrée.
 if __name__ == "__main__":
     arg = iuf.analyse_cmd_wndw_inpt()
 
     print("Construisons ta liste ensemble !!!.\n")
 
-    #TODO print quel paramètre par défauts ils utilisent, et / ou quel profil.
-    print("")
+
 
 
 #%% Ajouter au livre de recettes   
@@ -100,7 +105,7 @@ ou le nom de la liste archivée à utiliser :\n")
         continuer = True
         while continuer:
             #1.CHECK si existant ET AFFICHER liste d'épicerie.
-            nm_fchr_epcr = iuf.affchr_epcr_et_chck(nm_fchr_epcr)
+            nm_fchr_epcr = iuf.affchr_epcr_et_chck_exst(nm_fchr_epcr)
 
 
             #2.0.
@@ -118,31 +123,48 @@ provenant du (w)eb,\n - de recettes (a)rchivées,\n - (m)odifier la liste\
 
 
             #3.1.OPTION web-scrapping
+            is_wbs = ''
             if src_rctt == 'w':
-                src_rctt = iuf.option_wbs_lst_epcr(nm_fchr_epcr)
+                lst_infos, is_wbs = iuf.option_wbs_lst_epcr(nm_fchr_epcr)
 
 
             #3.2.OPTION archive: prendre ingrédients d'une recette archivée.
             elif src_rctt == 'a':
-                src_rctt = iuf.option_archv_lst_epcr(nm_fchr_epcr)
+                lst_infos = iuf.option_archv_lst_epcr(nm_fchr_epcr)
 
 
             #TODO
             #3.3.OPTION ajouter des ingrédients manuellement.
             elif src_rctt == 'm':
-                src_rctt = iuf.option_mod_manl_lst_epcr(nm_fchr_epcr)
+                lst_infos = iuf.option_mod_manl_lst_epcr(nm_fchr_epcr)
 
 
             #4.0.
-            if src_rctt == 's':
+            if lst_infos == 's':
                 continuer = False
 
             #4.1.SI tout s'est bien dérouler, dire 'félicitations' et recommencer.
-            elif src_rctt == 'OK':    
-                #TODO envoyer infos à la liste. (Faire une boucle??)
-                print(f"Informations de l'archive ajoutées à la liste d'épicerie \
-'{nm_fchr_epcr}'!\nToutes mes félicitations !!\n")
+            elif lst_infos == 'continuer':
+                continue
 
+
+            #4.2.ELSE ENVOYER les nouvelles informations à la liste d'épicerie.
+            #TODO envoyer infos à la liste. (Faire une boucle??)
+            iuf.aj_lst_a_lst_epcr(src_rctt, lst_infos, nm_fchr_epcr)    
+
+            
+            #5.AFFICHER le message de succès avant de recommencer.            
+            print(f"Informations ajoutées à la liste d'épicerie \
+'{nm_fchr_epcr}' avec succès!\nToutes mes félicitations !!\n\n")
+
+
+            #6.WBS DEMANDER si ajouter à archv ou nn.
+            if is_wbs:
+               cntnr_ou_nn = iuf.prtgr_wbs_a_archv_ou_nn(lst_infos)
+
+               #6.1.
+               if cntnr_ou_nn == 's':
+                   continuer = False
 
 
 #TODO
