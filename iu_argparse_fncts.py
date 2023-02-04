@@ -122,9 +122,10 @@ def voir_une_rctte(num_lvr_rctts):
     txt_input = 'Voulez-vous voir les ingrédients \
 / modifier une recette en particulier ?\n( o / n ) : '
     #0.2.AFFICHER, DEMANDER, puis FORCER l'entrée.
-    voir_rctt_ou_nn = utl.boucle_chsr_entr_pls_rctts(txt_présentation,
-                                                 num_lvr_rctts, 'toutes',
-                                                 txt_input, ['o', 'n', 's'])
+    voir_rctt_ou_nn = utl.boucle_chsr_entr_pls_rctts(
+        txt_présentation, num_lvr_rctts, 'toutes',
+        txt_input, ['o', 'n', 's']
+    )
 
 
     #2.SI VOIR
@@ -170,8 +171,11 @@ def mod_la_rctt_affchr(num_lvr_rctts, num_rctt):
     txt_pres = 'Cette recette:'
     inpt_txt = 'Voulez-vous modifier cette recette ou non?\n( o / n ) : '
     #0.1.AFFICHER, DEMANDER puis FORCER entrée.
-    mod_rctt_ou_nn = utl.boucle_chsr_entr_pls_rctts(txt_pres, num_lvr_rctts, num_rctt,
-                               inpt_txt, ['o', 'n', 's'], ingr='tous')
+    mod_rctt_ou_nn = utl.boucle_chsr_entr_pls_rctts(
+        txt_pres, num_lvr_rctts, num_rctt, inpt_txt, ['o', 'n', 's'],
+        ingr='tous'
+    )
+
 
     #1.MODIFIER la RECETTE manuellement.
     if mod_rctt_ou_nn == 'o':
@@ -249,7 +253,7 @@ def aj_rctt_wbs_lvr_csv(num_lvr_rctts):
 
 
 #%% Ingrédients épicerie
-def affchr_epcr_et_chck_exst(nm_fchr_epcr):
+def affchr_epcr_et_chcks(nm_fchr_epcr):
     """Vérifier si la liste d'épicerie existe. Si elle n'existe pas, la créer,
     puis afficher les informations dans la liste d'épicerie.
 
@@ -276,14 +280,39 @@ def affchr_epcr_et_chck_exst(nm_fchr_epcr):
             return 's'
 
 
+    #3.0.OBTENIR le df de la liste d'épicerie.
+    df_lst_epcr = e_l.df_lst_epcr(nm_fchr_epcr)
+
     #3.AFFICHER la liste
     print(f"Voici la liste d'épicerie depuis le document \
-{nm_fchr_epcr} :")
+{nm_fchr_epcr} :\n\n{df_lst_epcr}")
 
-    #3.1.TODO transformer le print par défaut.
-    print(e_l.df_lst_epcr(nm_fchr_epcr))
+    #4.CHECK si organisée selon le profil par défaut.
+    if chck_exst_ou_nn:
+        #4.0.VÉRIFIER.
+        chck_dft = utl.chck_epcr_clnns_dft(nm_fchr_epcr)
 
-    #4.RETOURNER un nom d'épicerie potentiellement nouveau.
+        #4.1.SI chck_dft = Faux, alors la liste est pas organisé selon le profil.
+        if not chck_dft:
+            #4.1.1.INFORMER de la problématique.
+            print("La liste d'épice n'est pas ordonné comme le profil par défaut \
+actuel le demande. Elle peut être ordonnée comme tel, à moins que..")
+
+            #4.1.2.PROPOSER un changement de profil par défaut utilisé.
+            prfl_dft = e_m.chx_prfl_dft()
+
+            #4.1.3.
+            if prfl_dft == 's':
+                return 's'
+
+            #TODO réorganiser la liste d'épicerie séparément?
+            #TODO obtenir tous les ingrédients plus lw et nm_rctt séparés.
+            #TODO les trier selon la valeur par défaut
+            #TODO faire des .csv pour chaque profil par défaut ? (initialement, importer les épiceries
+            #ou incorporer la liste maître.)
+
+
+    #5.RETOURNER un nom d'épicerie potentiellement nouveau.
     return nm_fchr_epcr
 
 
@@ -293,7 +322,7 @@ def option_wbs_lst_epcr(nm_fchr_epcr):
     """Retirer les informations d'une recette par web-scrapping (wbs).
 
 
-    RETOURNE: ('s', 'continuer' ou wbs_info), (True or None)
+    RETOURNE: 's', 'continuer' ou wbs_info
 
 
     @Constuire list - iu_argparse_main
@@ -316,7 +345,7 @@ def option_wbs_lst_epcr(nm_fchr_epcr):
 
     #3.0.SORTIR.
     if lien_web in ['s', 'continuer']:
-        return lien_web, None
+        return lien_web
 
 
     #TODO 3.1.OBTENIR les ingrédients du web par "scrapping".
@@ -332,11 +361,11 @@ def option_wbs_lst_epcr(nm_fchr_epcr):
 
     #6.0.SORTIR.
     if wbs_infos_mod in ['s', 'continuer']:
-        return wbs_infos_mod, None
+        return wbs_infos_mod
 
 
     #6.RETOURNER la liste d'info de la recette.
-    return wbs_infos_mod, True
+    return wbs_infos_mod
 
 
 
@@ -364,7 +393,9 @@ d'une recette?\n( # ) : "
         lst_lvrs_rctts = e_l.lst_lvrs_rctts_csv()
         cndtn = [str(x+1) for x, lvr in enumerate(lst_lvrs_rctts)]
         #1.3.FORCER entrée.
-        num_lvr_rctts = utl.boucle_chsr_entr_pls_rctts(txt_prsnttn, 'tous', None, inpt_txt, cndtn+['s'])
+        num_lvr_rctts = utl.boucle_chsr_entr_pls_rctts(
+            txt_prsnttn, 'tous', None, inpt_txt, cndtn+['s']
+        )
 
 
         #2.0.
@@ -385,7 +416,9 @@ d'épicerie?\n( # ) : "
         lst_rctts = e_l.lst_rctts_depuis_csv(num_lvr_rctts)
         cndtn = [str(x+1) for x, rctt in enumerate(lst_rctts)]
         #2.4.FORCER entrée.
-        num_rctt = utl.boucle_chsr_entr_pls_rctts(txt_pres, num_lvr_rctts, 'toutes', inpt_text, cndtn)
+        num_rctt = utl.boucle_chsr_entr_pls_rctts(
+            txt_pres, num_lvr_rctts, 'toutes', inpt_text, cndtn
+        )
 
 
         #3.0.
@@ -400,8 +433,9 @@ d'épicerie?\n( # ) : "
         txt_inpt = '\nVeuillez;\n - (c)onfirmer ce choix de recette,\n\
  - (u)tiliser une autre recette ou\n - (s)ortir du programme\n( c / u / s ) : '
         #3.2.FORCER entrée
-        continuer = utl.boucle_chsr_entr_pls_rctts(None, num_lvr_rctts, num_rctt,
-                                                   txt_inpt, ['c', 'u', 's'], ingr='tous')
+        continuer = utl.boucle_chsr_entr_pls_rctts(
+            None, num_lvr_rctts, num_rctt, txt_inpt, ['c', 'u', 's'], ingr='tous'
+        )
 
 
         #4.0.continuer = c ou u c'est OK car recommencer ou continue
@@ -454,11 +488,8 @@ def aj_lst_a_lst_epcr(source_info, lst_infos, nm_fchr_epcr):
         #OBTENIR "[[lst_rctt], [lst_lwb], [lst_epcr_1], [lst_epcr_2], etc.]
         lst_lst_epcr_ini += [[df_lst_epcr_ini] + df_lst_epcr_ini[col]]
 
-    #3.TODO trier la liste d'épicerie selon le profil par défaut.
-
-
-    #4.TODO if len(df1) != len(df2) (pas la même liste par défaut au départ?)
-    #Aussi, quand, dans le programme, effectuer cette vérification ?
+    #TODO trier la liste d'épicerie selon le profil par défaut.
+    df_infos_fnl = print('TRIER les ingrédients.')
     
 
     #5.ENVOYER la liste d'épicerie
@@ -500,23 +531,23 @@ de recette?\n ( o / n ) : '
         lst_nums_lvrs_rctts = [str(x+1) for x, lvr in enumerate(lst_lvrs_rctts)]
 
         #2.1.FORCER l'entrée
-        num_lvr_rctts = utl.boucle_chsr_entr_pls_rctts(txt_pres,
-                                                       'tous', None,
-                                                       inpt_txt,
-                                                       lst_nums_lvrs_rctts+['s']
-                                                       )
+        num_lvr_rctts = utl.boucle_chsr_entr_pls_rctts(
+            txt_pres, 'tous', None, inpt_txt, lst_nums_lvrs_rctts+['s']
+        )
 
         #2.2.OMETTRE l'option 'sortir'.
         if num_lvr_rctts != 's':
-            #AJOUTER les informations au livre de recette.
+            #2.2.0.EST str car input().
+            num_lvr_rctts = int(num_lvr_rctts)
+            
+            #2.2.1.AJOUTER les informations au livre de recette.
             e_m.envyr_modif_lvr_rctts_csv(num_lvr_rctts, 'nouvelle', wbs_infos)
 
-
-            #AFFICHER le message de succès
+            #2.2.2.AFFICHER le message de succès
             print(f"\nCette recette est ajoutée au livre de recette \
 '{lst_lvrs_rctts[num_lvr_rctts-1]}'.\nSi vous désirez l'ajouter dans livre de \
 recette supplémentaire, veuillez utiliser l'option 'Gérer livres recettes' de ce \
-programme..Merci !\n\n")
+programme..Merci !!\n\n")
 
             return None
 

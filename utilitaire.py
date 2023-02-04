@@ -49,10 +49,10 @@ def chmn_accs_dir_lsts_epcr():
 
 
 
-def chmn_accs_prfl_dft():
+def chmn_accs_prfls_dft():
     """Renvoyer le chemin d'accès des paramètres actuels du profil par défaut."""
 
-    return f'{wrk_dir_pth}\Entrepôt\Profils_par_défaut.csv'
+    return f'{wrk_dir_pth}\Entrepôt\Profils_par_défaut\Profils_par_défaut.csv'
 
 
 
@@ -182,6 +182,35 @@ def str_split_info(txt_info, info_ou_ingr):
             #TODO UTILISER le dictionnaire interne de synonymes/omissions.
     
         return info_pour_mod_rctt[0], nouv_info
+
+
+
+
+def chck_epcr_clnns_dft(nm_fchr_epcr):
+    """Vérifier si la liste d'entêtes dans la liste d'épicerie actuelle reflète
+    les entêtes du profil par défaut actuel.
+
+
+    RETOURNE: 'True', 'False'
+
+
+    @affchr_epcr_et_chcks - iuf - Ingrédients épicerie
+
+    """
+    #1.OBTENIR la liste d'entête du profil par défaut.
+    lst_entts_dft = e_l.lst_entt_epcrs_par_dft()
+
+    #2.OBTENIR la liste d'entête de la liste d'épicerie.
+    df_lst_epcr = e_l.df_lst_epcr(nm_fchr_epcr)
+    lst_entts_epcr = [entt for entt in df_lst_epcr]
+
+    #3.VÉRIFIER si elles sont équivalentes ou non.
+    if lst_entts_epcr == lst_entts_dft:
+        return True
+
+
+    #ELSE
+    return False
 
 
 
@@ -352,8 +381,9 @@ def gere_si_lw_wbs_dns_archv(lien_web, info_destination):
     #2.2.PLUSIEURS recettes contiennent ce lien web.
     #AFFICHER, DEMANDER si ajouter et retirer la recette choisie.
     else:
-        nums_lvr_rctts, nums_rctt = plsr_lw_wbs_rctts_archv(nums_lvr_rctts,
-                                                                  nums_rctt)
+        nums_lvr_rctts, nums_rctt = plsr_lw_wbs_rctts_archv(
+            nums_lvr_rctts, nums_rctt
+        )
 
 
     #3.0.Sortir du programme.
@@ -406,10 +436,9 @@ def un_lw_wbs_rctt_archv(nums_lvr_rctts, nums_rctt):
     input_txt = "Désirez-vous utiliser les informations de cette recette archivée?\n\
 ( o / n ) : "
     #0.2.FORCER entrée valide parmis : (o)ui, (n)on et (s)ortir.
-    dmnd_si_archv_ou_nn = boucle_chsr_entr_pls_rctts(txt_pres, nums_lvr_rctts, 
-                                                         nums_rctt, input_txt, 
-                                                         ['o', 'n', 's'], ingr='tous'
-                                                         )
+    dmnd_si_archv_ou_nn = boucle_chsr_entr_pls_rctts(
+        txt_pres, nums_lvr_rctts, nums_rctt, input_txt, ['o', 'n', 's'], ingr='tous'
+    )
 
     if dmnd_si_archv_ou_nn == 'o':
         return nums_lvr_rctts

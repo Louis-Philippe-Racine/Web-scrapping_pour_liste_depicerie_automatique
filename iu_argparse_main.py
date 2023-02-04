@@ -11,7 +11,7 @@ automatique."""
 #IMPORTER les modules créés par Dr. CiDre.
 import iu_argparse_fncts as iuf
 from entreposer_lire import lst_lvrs_rctts_csv, affchr_lsts_epcr_dspnbl
-from entreposer_mod import boucle_mod_rctt_lvr_csv, aj_lst_a_lst_epcr
+from entreposer_mod import boucle_mod_rctt_lvr_csv
 from utilitaire import boucle_frc_entr_lwrcs
 
 
@@ -24,6 +24,8 @@ import subprocess
 #DOTEXE - Ouvre invite de commande automatiquement:
 subprocess.Popen(['start', 'cmd', '/k',
                   "title  - * Liste d'épicerie automatique par web-scraping * - & type epicerie_startup.txt"], shell=True)
+
+#TODO changer print par défaut.
 
 
 #TODO print quel paramètre par défauts ils utilisent, et / ou quel profil.
@@ -101,11 +103,12 @@ création de liste d'épicerie !!.\n")
         nm_fchr_epcr = input("Écrivez le nom de la nouvelle liste d'épicerie \
 ou le nom de la liste archivée à utiliser :\n")
 
+
         #POUVOIR ajouter des recettes en boucle.
         continuer = True
         while continuer:
             #1.CHECK si existant ET AFFICHER liste d'épicerie.
-            nm_fchr_epcr = iuf.affchr_epcr_et_chck_exst(nm_fchr_epcr)
+            nm_fchr_epcr = iuf.affchr_epcr_et_chcks(nm_fchr_epcr)
 
 
             #2.0.
@@ -122,19 +125,19 @@ provenant du (w)eb,\n - de recettes (a)rchivées,\n - (m)odifier la liste\
             src_rctt = boucle_frc_entr_lwrcs(inpt_text, ['w', 'a', 'm', 's'])
 
 
-            #3.1.OPTION web-scrapping
+            #3.1.OPTION WEB-SCRAPPING
             is_wbs = ''
             if src_rctt == 'w':
-                lst_infos, is_wbs = iuf.option_wbs_lst_epcr(nm_fchr_epcr)
+                lst_infos = iuf.option_wbs_lst_epcr(nm_fchr_epcr)
 
 
-            #3.2.OPTION archive: prendre ingrédients d'une recette archivée.
+            #3.2.OPTION ARCHIVE: prendre ingrédients d'une recette archivée.
             elif src_rctt == 'a':
                 lst_infos = iuf.option_archv_lst_epcr(nm_fchr_epcr)
 
 
             #TODO
-            #3.3.OPTION ajouter des ingrédients manuellement.
+            #3.3.OPTION AJOUTER MANUELLEMENT.
             elif src_rctt == 'm':
                 lst_infos = iuf.option_mod_manl_lst_epcr(nm_fchr_epcr)
 
@@ -143,7 +146,7 @@ provenant du (w)eb,\n - de recettes (a)rchivées,\n - (m)odifier la liste\
             if lst_infos == 's':
                 continuer = False
 
-            #4.1.SI tout s'est bien dérouler, dire 'félicitations' et recommencer.
+            #4.1.RECOMMENCER.
             elif lst_infos == 'continuer':
                 continue
 
@@ -159,7 +162,7 @@ provenant du (w)eb,\n - de recettes (a)rchivées,\n - (m)odifier la liste\
 
 
             #6.WBS DEMANDER si ajouter à archv ou nn.
-            if is_wbs:
+            if src_rctt == 'w':
                cntnr_ou_nn = iuf.prtgr_wbs_a_archv_ou_nn(lst_infos)
 
                #6.1.

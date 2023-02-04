@@ -273,8 +273,10 @@ def envyr_modif_lvr_rctts_csv(num_lvr_rctts, num_rctt, lst_infos_mod):
         df_rctts = df_rctts.drop(columns=nm_rctts)
 
     #4.JOINDRE les recettes et les ordonner.
-    df_rctts = pd.merge(df_rctts, df_nouv_infos, how='outer', left_index=True,
-                            right_index=True).sort_index(axis=1)
+    df_rctts = pd.merge(
+        df_rctts, df_nouv_infos, how='outer', left_index=True,
+        right_index=True
+    ).sort_index(axis=1)
 
     #5.OBTENIR le chemin d'accès au livre de recette '.csv'.
     pth_lvr_rctt = f'{utl.chmn_accs_lvrs_rctts_dir()}/\
@@ -294,6 +296,7 @@ def creer_nouv_lst_epcr(nm_fchr_epcr):
 
 
     RETOURNE: 's' ou 'nm_fchr_epcr' <- potentiellement nouveau.
+
 
     @Ingrédients épicerie
 
@@ -347,6 +350,7 @@ d'aujourd'hui ?\n")
 #TODO
 def mod_lst_epcr(nm_fchr_epcr, df_infos):
     """Gérer la modification de la liste d'épicerie déjà créée
+
     """
     
     
@@ -380,7 +384,137 @@ def envyr_lst_epcr_csv(nm_fchr_epcr, df_infos_fnl):
 
 #TODO
 #%% Profil par défaut
-#TODO
-def mod_prfl_dft():
-    """Gérer la modification du profil par défaut.
+def chx_prfl_dft():
+    """Aider l'utilisateur à choisir un profil par défaut.
+
+
+    RETOURNE: 's', 'n' ou 'nm_prfl_dft'
+
+
+    @affchr_epcr_et_chcks - iuf - Ingrédients épicerie
+
     """
+    #1.1.OBTENIR le df des profils par défaut.
+    df_prfls_dft = e_l.df_prfls_dft_csv()
+
+
+    #.2.AFFICHER le profil actuel et les profils par défauts.
+    print(f"\nVoici les informations stockés sur les profils par défaut:\n\n\
+{df_prfls_dft}")
+
+
+    #3.DEMANDER changer de profil ou garder le même.
+    txt_inpt = "Désirez-vous changer de profil par défaut (inscrire le nom exact) \
+ou (n)on ?\n\n*(Pour ajouter un profil par défaut, vous devrez sortir de cette partie \
+du programme et plutôt utiliser la partie 'Profil par defaut' du programme.)*\n\n\
+( nom_de_profil_par_défaut / n ) : "
+    #3.1.OBTENIR les contraintes.
+    lst_nm_prfls_dft = [prfl for prfl in df_prfls_dft]
+    #3.2.FORCER l'entrée 
+    nm_prfl_dft= utl.boucle_frc_entr_lwrcs(txt_inpt, lst_nm_prfls_dft + ['n', 's'])
+
+
+    #4.GÉRER réponse mod ou non le profil par défaut.
+    #4.0.
+    if nm_prfl_dft in ['s', 'n']:
+        return nm_prfl_dft
+
+
+    #4.1.ELSE, modifier le profil par défaut.
+    mod_archv_prfls_dft_csv(['Profil_par_defaut_actuel', nm_prfl_dft])
+
+    #4.2.AFFICHER la bonne nouvelle.
+    print(f'\n..Le profil par défaut est maintenant le profil : {nm_prfl_dft}\n')
+    
+    #4.3.
+    return nm_prfl_dft
+
+
+
+
+def mod_archv_prfls_dft_csv(lst_info_mod_prfl_dft):
+    """Modifier l'archive des profils par défaut selon les modifications reçues.
+    - lst_info_mod_prfl_dft = [nom_clnn_dft, info1, info2, etc.]
+
+
+    RETOURNE: None
+
+
+    @chx_prfl_dft
+
+    """
+    #0.TROUVER le nom de la colonne de la liste utilisée.
+    nm_clnn_prfl_dft = lst_info_mod_prfl_dft[0]
+
+    #1.OBTENIR le df des profils par défaut.
+    df_prfls_dft = e_l.df_prfls_dft_csv()
+
+
+    #2.MODIFIER la liste obtenue en df.
+    df_info_mod_prfl = pd.Dataframe(
+        {nm_clnn_prfl_dft: lst_info_mod_prfl_dft[1:]}
+        )
+
+    #2.1.OPTION CHANGEMENT DU PROFIL PAR DÉFAUT.
+    if nm_clnn_prfl_dft == 'Profil_par_defaut_actuel':
+        #2.1.1.ENLEVER la colonne par défaut pour ensuite la remplacer avec 'Merge'.
+        df_nouv_prfls_dft = pd.merge(
+            df_info_mod_prfl, df_prfls_dft.iloc[:, 1:], how='outer', left_index=True,
+            right_index=True
+        ).sort_index(axis=1)
+
+
+    #2.2.0.ELSE permet d'écrire qu'un seul "merge" où la colonne de profil utilisé
+    #est gérée.
+    else:
+        #2.2.OPTION MODIFICATION D'UN PROFIL.
+        if nm_clnn_prfl_dft in df_prfls_dft:
+            #2.2.1.ENLEVER la colonne modifié pour ajouter la nouvelle par la suite.
+            df_clnn_drp = df_prfls_dft.drop(columns=nm_clnn_prfl_dft)
+
+        #2.3.OPTION NOUVEAU PROFIL par défaut est inclut ici.
+        #JOINDRE ET ORDONNÉE les profils sans avoir la colonne 'profil_par_defaut_actuel'.
+        df_mns_clnn_prfl_dft_actl = pd.merge(
+            df_clnn_drp.iloc[:, 1:], df_info_mod_prfl, how='outer', left_index=True,
+            right_index=True
+        ).sort_index(axis=1)
+
+        #JOINDRE le nouveau df des profils avec la première colonne habituelle.
+        df_nouv_prfls_dft = pd.merge(
+            df_clnn_drp.iloc[:, 0], df_mns_clnn_prfl_dft_actl, how='outer', left_index=True,
+            right_index=True
+        )
+
+
+    #3.ENVOYER les modifications au .csv des profils par défaut.
+    envyr_mod_prfls_dft_csv(df_nouv_prfls_dft)
+
+
+    #4.AFFICHIER le succès.
+    print(f"Les profils par défaut sont mis-à-jour avec succès!!\nVoici les nouvelles \
+informations enregistrées:\n\n{df_nouv_prfls_dft}")
+
+    return None
+
+
+
+
+def envyr_mod_prfls_dft_csv(df_infos_mod_prfl_dft):
+    """Envoyer la modification du profil par défaut au fichier .csv entreposer à
+    cet effet.
+
+
+    RETOURNE: None
+
+
+    @mod_archv_prfls_dft_csv
+
+    """
+    #1.OBTENIR le chemin d'accès du .csv des profils par défaut.
+    prfls_dft_pth = utl.chmn_accs_prfls_dft()
+
+    #2.ENVOYER les modifications au .csv des profils par défaut.
+    df_infos_mod_prfl_dft.to_csv(prfls_dft_pth, sep=';', encoding='latin', index=False)
+
+    return None
+

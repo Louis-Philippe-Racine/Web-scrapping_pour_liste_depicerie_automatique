@@ -156,10 +156,37 @@ def df_lst_epcr(nm_lst_epcr):
 
 
 
+def affchr_une_lst_epcr(nm_fchr_epcr):
+    """Afficher la liste d'épicerie choisie.
+    """
+
+
+
+
+
 #%% Profil par défaut
 #TODO ..on peut assigner LE trie par défaut? Sinon y a til d'autres choses par défaut?
 #Le nombre de liste d'épicerie qu'on peut voir par défaut au début du programme "Ingrédients.."
 #Où une wbs va être archivé par défaut (montre les options dit veux-tu aller avec ta valeur par défaut ou nn.)
+def df_prfls_dft_csv():
+    """Créer le dataframe pandas des profils par défauts.
+
+
+    RETOURNE: df_prfls_dft
+
+
+    @dict_infos_prfls_dft_csv
+
+    """
+    #0.OBTENIR le chemin d'accès à Profils_par_défaut.csv.
+    pth_prfls_dft = utl.chmn_accs_prfls_dft()
+
+    #1.RETOURNER le df du profil par défaut.
+    return pd.read_csv(pth_prfls_dft, sep=';', encoding='latin', na_filter=False)
+
+
+
+
 def dict_infos_prfls_dft_csv():
     """Retirer les informations du fichier texte des profils par défaut. Organiser
     l'information s'y trouvant en:
@@ -167,17 +194,15 @@ def dict_infos_prfls_dft_csv():
         2.Nom de profil : colomnes par défaut.
 
 
-    RETOURNE: {profils par défauts}
+    RETOURNE: {profils par défaut}  ->   {Profil_par_dft_actuel: Dr_CiDre, 
+                                          Nom_profil: clnns_par_dfts, etc.}
 
 
-    @lst_epcrs_par_dft
+    @lst_entt_epcrs_par_dft
 
     """
-    #0.OBTENIR le chemin d'accès à Profils_par_défaut.csv.
-    pth_prfls_dft = utl.chmn_accs_prfl_dft()
-
-    #1.DF du profil par défaut.
-    df_prfl_dft = pd.read_csv(pth_prfls_dft, sep=';', encoding='latin', na_filter=False)
+    #1.OBTENIR le df du profil par défaut.
+    df_prfl_dft = df_prfls_dft_csv()
 
     #2.CRÉER le dictionnaire.
     dict_prfls_dft = {}
@@ -204,7 +229,7 @@ def lst_entt_epcrs_par_dft():
     dict_prfls = dict_infos_prfls_dft_csv()
 
     #1.NOM du profil par défaut actuel.
-    pfl_dft = dict_prfls['Profil_par_defaut'][0]
+    pfl_dft = dict_prfls['Profil_par_defaut_actuel'][0]
     lst_clnns_dft = [f'{3+indx}.nm_col' for indx,
                      nm_col in enumerate(dict_prfls[pfl_dft])]
     
@@ -213,4 +238,23 @@ def lst_entt_epcrs_par_dft():
 
 
 
+#TODO enlever ??
+def lst_prfl_actl_et_prfls_dft():
+    """Obtenir le profil actuel et les profils par défaut disponibles.
 
+
+    RETOURNE: prfl_act, [prfls_dft]
+
+
+    @chx_prfl_dft - e_m - Profil par défaut
+    
+    """
+    #0.OBTENIR le dict des profils par défauts.
+    dict_prfls = dict_infos_prfls_dft_csv()
+    
+    #1.OBTENIR le profil actuel et les profils par défaut disponibles.
+    prfl_actl = dict_prfls['Profil_par_defaut_actuel']
+    lst_prfls_dft_disps = [prfl for prfl in dict_prfls]
+
+    #2.RENVOYER l'info.
+    return prfl_actl, lst_prfls_dft_disps
