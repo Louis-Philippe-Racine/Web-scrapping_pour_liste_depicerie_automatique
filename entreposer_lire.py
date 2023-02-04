@@ -163,9 +163,9 @@ def affchr_une_lst_epcr(nm_fchr_epcr):
 
 
 
-
 #%% Profil par défaut
 #TODO ..on peut assigner LE trie par défaut? Sinon y a til d'autres choses par défaut?
+#OUI ! Les synonymes peuvent changer et aussi où envoyer les infos à la fin
 #Le nombre de liste d'épicerie qu'on peut voir par défaut au début du programme "Ingrédients.."
 #Où une wbs va être archivé par défaut (montre les options dit veux-tu aller avec ta valeur par défaut ou nn.)
 def df_prfls_dft_csv():
@@ -175,11 +175,11 @@ def df_prfls_dft_csv():
     RETOURNE: df_prfls_dft
 
 
-    @dict_infos_prfls_dft_csv
+    @dct_infos_prfls_dft_csv
 
     """
     #0.OBTENIR le chemin d'accès à Profils_par_défaut.csv.
-    pth_prfls_dft = utl.chmn_accs_prfls_dft()
+    pth_prfls_dft = utl.chmn_accs_dir_prfls_dft()
 
     #1.RETOURNER le df du profil par défaut.
     return pd.read_csv(pth_prfls_dft, sep=';', encoding='latin', na_filter=False)
@@ -187,15 +187,14 @@ def df_prfls_dft_csv():
 
 
 
-def dict_infos_prfls_dft_csv():
+def dct_infos_prfls_dft_csv():
     """Retirer les informations du fichier texte des profils par défaut. Organiser
     l'information s'y trouvant en:
         1.Profil_par_défaut
         2.Nom de profil : colomnes par défaut.
 
 
-    RETOURNE: {profils par défaut}  ->   {Profil_par_dft_actuel: Dr_CiDre, 
-                                          Nom_profil: clnns_par_dfts, etc.}
+    RETOURNE: {profils par défaut}  ->   {Nom_profil: clnns_epcrs_par_dft, etc.}
 
 
     @lst_entt_epcrs_par_dft
@@ -205,17 +204,17 @@ def dict_infos_prfls_dft_csv():
     df_prfl_dft = df_prfls_dft_csv()
 
     #2.CRÉER le dictionnaire.
-    dict_prfls_dft = {}
+    dct_prfls_dft = {}
     for clmn_nm in df_prfl_dft:
-        dict_prfls_dft[clmn_nm] = list(df_prfl_dft[clmn_nm])
+        dct_prfls_dft[clmn_nm] = list(df_prfl_dft[clmn_nm])
 
     #3.RETOURNER dictionnaire des profils par défauts.
-    return dict_prfls_dft
+    return dct_prfls_dft
 
 
 
 
-def lst_entt_epcrs_par_dft():
+def lst_entt_epcrs_par_dft(nm_prfl_dft):
     """Obtenir les épiceries par défaut.
 
 
@@ -226,35 +225,31 @@ def lst_entt_epcrs_par_dft():
 
     """
     #0.OBTENIR le dictionnaire des profils par défaut.
-    dict_prfls = dict_infos_prfls_dft_csv()
+    dct_prfls = dct_infos_prfls_dft_csv()
 
-    #1.NOM du profil par défaut actuel.
-    pfl_dft = dict_prfls['Profil_par_defaut_actuel'][0]
-    lst_clnns_dft = [f'{3+indx}.nm_col' for indx,
-                     nm_col in enumerate(dict_prfls[pfl_dft])]
+    #1.OBTERNI les épiceries par défaut.
+    lst_clnns_dft = [nm_col for nm_col in dct_prfls[nm_prfl_dft]]
     
     #2.LISTE des épiceries par défaut actuel.
-    return ['1.Nom_de_recette', '2.Lien_web'] + lst_clnns_dft
+    return ['Nom_de_recette', 'Lien_web'] + lst_clnns_dft
 
 
 
-#TODO enlever ??
-def lst_prfl_actl_et_prfls_dft():
-    """Obtenir le profil actuel et les profils par défaut disponibles.
+
+#%% Ordre des ingrédients
+#TODO
+def df_fchr_tri_epcrs_dft_csv(nm_fchr_tri_epcrs_dft):
+    """Obtenir le dataframe d'un ordre de triage d'ingrédients d'un profil par
+    défaut en format .csv.
 
 
-    RETOURNE: prfl_act, [prfls_dft]
+    RETOURNE: df_tris_dft
 
 
-    @chx_prfl_dft - e_m - Profil par défaut
-    
+
     """
-    #0.OBTENIR le dict des profils par défauts.
-    dict_prfls = dict_infos_prfls_dft_csv()
-    
-    #1.OBTENIR le profil actuel et les profils par défaut disponibles.
-    prfl_actl = dict_prfls['Profil_par_defaut_actuel']
-    lst_prfls_dft_disps = [prfl for prfl in dict_prfls]
+    #1.OBTENIR le chemin d'accès pour ce fichier.
+    tris_dft_pth = utl.chmn_accs_dir_prfls_dft()
 
-    #2.RENVOYER l'info.
-    return prfl_actl, lst_prfls_dft_disps
+    #2.
+    

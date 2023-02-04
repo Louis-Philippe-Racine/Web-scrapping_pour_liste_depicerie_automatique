@@ -20,17 +20,19 @@ import subprocess
 
 
 
-
+#%% Préambule
 #DOTEXE - Ouvre invite de commande automatiquement:
 subprocess.Popen(['start', 'cmd', '/k',
                   "title  - * Liste d'épicerie automatique par web-scraping * - & type epicerie_startup.txt"], shell=True)
 
-#TODO changer print par défaut.
 
 
-#TODO print quel paramètre par défauts ils utilisent, et / ou quel profil.
-#TODO modifier le txt de départ pour y incorporer le profil par défaut.
-print("I luv u mang")
+
+
+#TODO print quel paramètre par défauts ils utilisent, et / ou quel profil.Plus:
+print("Dans n'importe quel input, écrire 's' pour sortir de l'option \
+proposée !!.\n")
+
 
 
 #DÉBUTE ce programme et oriente selon l'entrée.
@@ -39,13 +41,18 @@ if __name__ == "__main__":
 
     print("Construisons ta liste ensemble !!!.\n")
 
+    #TODO changer print par défaut.
+
+    #TODO implémenter arg.utilisateur:
+    #check if utilisateur possible ou add un profil
+    nm_prfl = iuf.gere_si_prfl_exst_ou_nn(arg.utilisateur)
 
 
-
+#TODO LONG-TERME, permettre d'afficher les instructions pour que je pusise l'utiliser en cuisine avec des checkboxs.
 #%% Ajouter au livre de recettes   
     #BOUCLE afficher liste de recette
     if arg.ajouter_au_livre_de_recettes:
-        print("Dans n'importe quel input, écrire 's' pour sortir de l'option \
+        print("\nDans n'importe quel input, écrire 's' pour sortir de l'option \
 proposée !!.\n")
 
         #Continuer de voir/modifier des recettes sans sortir
@@ -89,11 +96,11 @@ de recettes : {lst_lvrs_rctts_csv[num_lvr_rctts-1]}!!\n..Bravo!!\n')
 
 
 #%% Ingrédients épicerie
-    #TODO    
+    #TODO
     #BOUCLE création ou agrandissement de la liste d'épicerie.
     if arg.ingr_lst_epcr:
         #0.AFFICHER informations sur quitter la partie du programme.
-        print("Dans n'importe quel input, écrire 's' pour sortir de l'option \
+        print("\nDans n'importe quel input, écrire 's' pour sortir de l'option \
 création de liste d'épicerie !!.\n")
 
         #0.1.AFFICHER les listes d'épiceries disponibles.
@@ -198,12 +205,12 @@ provenant du (w)eb,\n - de recettes (a)rchivées,\n - (m)odifier la liste\
 
         #TODO FORCE input.
         #VEUT-IL vraiment l'envoyer?
-        Envoie_check = input('Voulez-vous vraiment envoyer cette liste à \
+        Envoie_check = input('\nVoulez-vous vraiment envoyer cette liste à \
 Google Keep et aux favoris de Chrome ?\n( o / n ) : ').lower()
 
         #PAS à envoyer?
         if Envoie_check != 'o':
-            print(f"Liste d'épicerie pour {arg.nom_fichier_epicerie} NON-partagée.")
+            print(f"\nListe d'épicerie pour {arg.nom_fichier_epicerie} NON-partagée.")
             
         #TODO ENVOYER la liste à G_Keep et aux favoris dans Chrome.
         else:
@@ -213,4 +220,4 @@ Google Keep et aux favoris de Chrome ?\n( o / n ) : ').lower()
 
 #TODO - Par défaut, quel ordre (rang et épicerie) pour ajouter une recette dans la liste d'épicerie
 #TODO - "        ", enregistrer la liste ou non.
-#%% Profil par défaut
+#%% Profils par défaut

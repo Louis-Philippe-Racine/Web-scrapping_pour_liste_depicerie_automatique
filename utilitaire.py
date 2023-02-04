@@ -32,27 +32,27 @@ def chmn_accs_lvrs_rctts_dir():
     @lst_rctts_depuis_csv - entreposer_lire
     @envyr_modif_lvr_rctts_csv - entreposer_mod
     """
-    #LIVRES DE RECETTES (Excel) - Chemin d'accès
-    arch_dir_pth = wrk_dir_pth + r'\Entrepôt\Livres_recettes_csv'
-    
-    return arch_dir_pth
+
+    return f'{wrk_dir_pth}\Entrepôt\Livres_recettes_csv'
 
 
 
 
 def chmn_accs_dir_lsts_epcr():
     """Renvoyer le chemin d'accès au dossier des listes d'épicerie
-    selon la localisation du programme '.exe'."""
+    selon la localisation du programme '.exe'.
+    """
     #LISTE D'ÉPICERIE (Excel) - Chemin d'accès
     return wrk_dir_pth + r"\Listes_d'épiceries"
 
 
 
 
-def chmn_accs_prfls_dft():
+def chmn_accs_dir_prfls_dft():
     """Renvoyer le chemin d'accès des paramètres actuels du profil par défaut."""
 
-    return f'{wrk_dir_pth}\Entrepôt\Profils_par_défaut\Profils_par_défaut.csv'
+    return f'{wrk_dir_pth}\Entrepôt\Profils_par_défaut'
+
 
 
 
@@ -185,6 +185,30 @@ def str_split_info(txt_info, info_ou_ingr):
 
 
 
+#%% Vérifications
+def chck_prfl_dft_exst(nm_prfl):
+    """Vérifier si le profil par défaut inscrit existe déjà dans l'archive .csv
+
+
+    RETOURNE: 'True' ou 'False'
+    -         Existe   Non-trouvé
+
+
+    @gere_si_prfl_exst_ou_nn
+
+    """
+    #1.OBTENIR le df des profils par défaut.
+    df_prfls_dft = e_l.df_prfls_dft_csv()
+
+    #2.1.VÉRIFIER si nm_prfl existe déjà.
+    if any([nm_prfl==prfl for prfl in df_prfls_dft]):
+        return True
+
+
+    #2.2.ELSE
+    return False
+
+
 
 def chck_epcr_clnns_dft(nm_fchr_epcr):
     """Vérifier si la liste d'entêtes dans la liste d'épicerie actuelle reflète
@@ -271,7 +295,7 @@ def chck_lst_epcr_exst(nm_lst_epcr):
 
 
 
-#%% Vérifier si dans archive
+#%%% Vérifier si dans archive
 def est_dans_arch_check_csv(lien_web):
     """Pour format .csv : Vérifier si le lien_web est dans l'archive. 
 
@@ -347,7 +371,7 @@ def verf_archv_obt_infos(lst_lws, lien_web):
 
 
 
-#%% Gérer si dans archive
+#%%% Gérer si dans archive
 def gere_si_lw_wbs_dns_archv(lien_web, info_destination):
     """Vérifier, informer puis résoudre si le lien web entrée pour le web-scrape
     est parmis les liens web des recettes archivées - donc la recette et ses ingrédients

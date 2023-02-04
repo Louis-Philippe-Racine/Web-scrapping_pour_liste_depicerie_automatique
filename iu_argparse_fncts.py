@@ -19,6 +19,8 @@ def analyse_cmd_wndw_inpt():
 
     parser = argparse.ArgumentParser()
 
+    parser.add_argument('utilisateur', help="Nom d'utilisateur / de profil par défaut.")
+
     parser.add_argument(
         '-a', '--ajouter_au_livre_de_recettes',
         dest='ajouter_au_livre_de_recettes',
@@ -59,6 +61,52 @@ les livres, ajouter des livres de recettes, etc."
     )
 
     return parser.parse_args()
+
+
+
+#TODO
+def gere_si_prfl_exst_ou_non(nm_prfl):
+    """Vérifier si le nom d'utilisateur inscrit existe ou non. Appliquer des 
+    actions dépendamment (changer nm_prfl, créer un noveau profil).
+
+
+    RETOURNE: nm_prfl   <- Potentiellement nouveau
+
+
+    @Préambule
+
+    """
+    #0.BESOIN d'avoir un nom de profil pour utiliser le programme.
+    while True:    
+        #1.VÉRIFIER si le profil inscrit existe ou non.
+        prfl_exst = utl.chck_prfl_dft_exst(nm_prfl)
+
+        #2.1.SI EXISTE, retourner même nom.
+        if prfl_exst:
+            return nm_prfl
+
+
+        #2.2.ELSE, profil existe pas.
+        #2.2.0.INFORMER de la problématique.
+        print(f"Ce nom de profil, '{nm_prfl}', est un profil inexistant.")
+
+        #2.2.1.PROPOSER de changer le nom
+        nouv_nm_prfl = e_m.chx_prfl_dft(nm_prfl)
+
+        #TODO 3.1.GARDER ce nom de profil donc créer un nouveau profil.
+        if nouv_nm_prfl == 'g':
+            nouv_nm_prfl = creer_nouv_prfl(nm_prfl)
+
+
+        #3.2.PAS SORTIR car besoin d'un profil pour utiliser le program.
+        if nouv_nm_prfl == 's':
+            nm_prfl = input("\nLe programme nécessite un nom de profil pour être \
+utilisé!..\n Quel nom d'utilisateur désirez-vous utiliser?\n")
+
+        #3.3.ELSE is guewd.
+        else:
+            return nouv_nm_prfl
+
 
 
 
@@ -305,6 +353,8 @@ actuel le demande. Elle peut être ordonnée comme tel, à moins que..")
             if prfl_dft == 's':
                 return 's'
 
+            #TODO gère la sortie 'g' de 4.1.2.
+
             #TODO réorganiser la liste d'épicerie séparément?
             #TODO obtenir tous les ingrédients plus lw et nm_rctt séparés.
             #TODO les trier selon la valeur par défaut
@@ -469,7 +519,7 @@ def option_mod_manl_lst_epcr(nm_fchr_epcr):
 
 #TODO - En général mais itout quoi mettre où parce qu'il me manque la place des titres de recettes.
 #Si il y a des éléments non-triés, demander où les mettre. (Option changer de profil par défaut.)
-def aj_lst_a_lst_epcr(source_info, lst_infos, nm_fchr_epcr):
+def aj_lst_a_lst_epcr(lst_infos, nm_prfl_dft, nm_fchr_epcr):
     """Ajouter les ingrédients à la liste d'épicerie.
     
     
@@ -559,3 +609,23 @@ programme..Merci !!\n\n")
 
     #4.ELSE, ajtr_ou_nn == 'n'.
     return None
+
+
+
+
+#%% Profils par défaut
+def creer_nouv_prfl(nm_nouv_prfl):
+    """Créer un nouveau profil par défaut. Demander:
+        1.Les épiceries par défaut
+
+
+    RETOURNE: 's' ou 'nm_prfl'
+
+
+    @gere_si_prfl_exst_ou_nn - iuf
+
+
+    """
+    #0.BOUCLE pour la création du profil.
+    continuer = True
+    while continuer:

@@ -16,9 +16,9 @@ import utilitaire as utl
 import pandas as pd
 
 
-
-
-def mod_lst_infos(lst_infos_rctt):
+#TODO les mli_gerer sont très à finaliser! Mais aussi où elles étaient doivent ajouter le "type_lst").
+#%% Modification d'une liste
+def mod_lst_infos(lst_infos, type_lst):
     """Après avoir obtenu la liste d'information d'une recette:
         - Afficher les infos,
         - Demander:
@@ -29,6 +29,8 @@ def mod_lst_infos(lst_infos_rctt):
             5.Supprimer un info (outre 0,1);
             5.Help
 
+    *type_lst = 'la recette', 'le profil par défaut', 'la liste d'épicerie'
+
 
     RETOURNE: 's', 'continuer', 'lst_infos_mod'
 
@@ -38,24 +40,25 @@ def mod_lst_infos(lst_infos_rctt):
     @gere_si_lw_wbs_dns_arch - utl - Gérer si dans archive
 
     """
-    print("Voici les informations complètes de cette recette:\n")
+    #0.AFFICHER les informations avant la boucle.
+    print("Voici les informations complètes pour {type_lst}':\n")
 
-    for indx, info in enumerate(lst_infos_rctt):
+    for indx, info in enumerate(lst_infos):
         print(f'{indx} - {info}')
 
     #1.BOUCLE MODIFIER cette liste d'information.
     cntnuer_cnfrmtn = True
-    lst_infos_mod = lst_infos_rctt
+    lst_infos_mod = lst_infos
     while cntnuer_cnfrmtn:
-        #DEMANDER si OK ou modifier les infos.
+        #0.1.DEMANDER si OK ou modifier les infos.
         dmnde_actn = input("""Désirez-vous:
- - Modifier une de ces informations (#.nouvelleinfo);
- - Échanger le rang des ingrédients dans la liste (#ingr1.#ingr2)
  - (c)onfirmer ces informations;
- - (r)ecommencer le processus avec une autre liste d'info deleter
- - (d)eleter une information (d.#ingr) ou
+ - (r)ecommencer le processus avec une autre liste d'info;
+ - Modifier une de ces informations (#.nouvelleinfo);
+ - Échanger le rang de ces informations dans la liste (#info1.#info2)
+ - Supprimer une information (s.#info) ou
  - (h)elp.
-( #.nouvelleinfo / #ingr1.#ingr2 / a / r / d.#ingr / h ) : """) 
+( #.nouvelleinfo / #info1.#info2 / a / r / d.#info / h ) : """) 
 
 
         #1.0.(S)ORTIR du programme.
@@ -63,17 +66,15 @@ def mod_lst_infos(lst_infos_rctt):
             return 's'
 
 
-
         #1.1.(R)ECOMMENCER la boucle.
         if dmnde_actn.lower() == 'r':
             return 'continuer'
 
 
-
         #1.2.(V)OIR la recette à jour.
         if dmnde_actn.lower() == 'v':
             #AFFICHER la recette et redébutter la boucle while.
-            print('Voici les informations à jour de la recette :\n')
+            print(f'Voici les informations à jour pour {type_lst} :\n')
 
             for indx, info in enumerate(lst_infos_mod):
                 print(f'{indx} - {info}')
@@ -81,12 +82,11 @@ def mod_lst_infos(lst_infos_rctt):
             continue
 
 
-
         #1.3.(C)ONFIRMER ces informations.
         if dmnde_actn.lower() == 'c':
             #1.3.1.SKIP le check final si liste non modifiée
-            if lst_infos_rctt == lst_infos_mod:
-                return lst_infos_rctt
+            if lst_infos == lst_infos_mod:
+                return lst_infos
 
 
             #1.3.2.AFFICHER la liste d'épicerie à jour
@@ -116,81 +116,194 @@ def mod_lst_infos(lst_infos_rctt):
             return 's'
 
 
-
         #1.4.(H)ELP pour l'écriture de modification.
         if dmnde_actn.lower() == 'h':
-            print("\n\n\
+            mli_help()
+            continue
+
+
+        #2.0.TRIER selon les types de modifications
+        #Types = Ajouter, Modifier, Échanger ou Supprimer de l'information.
+        entr_mod_splt = dmnde_actn.split('.')
+        nouv_lst_infos_mod = lst_infos_mod
+
+        #2.0.1.SI split plus qu'une fois, remettre ensemble avec des points.
+        if len(entr_mod_splt) > 1:
+            entr_mod_splt = entr_mod_splt[0] + '.'.join(entr_mod_splt[1:])
+
+        #2.0.2.TROUVER le type de modification choisie par l'utilisateur.
+        type_mod = tri_si_mod_echngr_ou_supprmr(entr_mod_splt, lst_infos_mod)
+
+
+        #2.1.OPTION AJOUTER une information (On ne peut qu'en ajouter une à la fin.)
+        if type_mod == 'ajtr':
+            lst_infos_mod += [entr_mod_splt[1]]
+
+
+        #2.2.OPTION MODIFIER une information.
+        elif type_mod == 'mod':
+            nouv_lst_infos_mod = mli_gerer_mod(entr_mod_splt, lst_infos_mod, type_lst)
+
+
+        #2.3.OPTION ÉCHANGER des informations.
+        elif type_mod == 'echngr':
+            nouv_lst_infos_mod = mli_gerer_echng(entr_mod_splt, lst_infos_mod, type_lst)
+
+
+        #2.4.OPTION SUPPRIMER une information.
+        elif type_mod == 'supprmr':
+            nouv_lst_infos_mod = mli_gerer_supprmr(entr_mod_splt, lst_infos_mod, type_lst)
+
+
+        #3.SI liste a été modifiée, alors l'entrée était valide.
+        if nouv_lst_infos_mod != lst_infos_mod:
+            print("\nSuccès!!\n")
+            
+            #3.1.METTRE la liste modifiée à jour et continuer la boucle.
+            lst_infos_mod = nouv_lst_infos_mod
+            continue
+
+
+        #4.TOUTE les autres options signifient que l'entrée est invalide.
+        print(f"Cette entrée, {dmnde_actn}, est invalide. Écrivez 'h' pour plus \
+d'information sur les entrées de modifications de la recette.")
+        continue    
+
+
+
+
+def tri_si_mod_echngr_ou_supprmr(entr_mod_splt, lst_infos_mod):
+    """Définir comment changer la liste à modifier, soit en modifiant une information,
+    en ajoutant une, en supprimant un ou en échangeant deux de position.
+
+
+    RETOURNE: 'ajtr', 'mdfr', 'echngr', 'supprmr' ou None
+
+
+    @mod_lst_infos
+    """
+    #1.SI il y a eu un split.
+    if len(entr_mod_splt) > 1:
+        #1.1.SI modifié ou échanger (#.info ou #.#).
+        if entr_mod_splt[0].isnumeric():
+            #1.2.STR puisque input.
+            index = int(entr_mod_splt[0])
+
+            #1.3.(#.info)
+            if not entr_mod_splt[1].isnumeric():
+                #1.3.1.OPTION AJOUTER UN nombre > len() veut dire qu'on instaure une nouvelle info.
+                if index > len(lst_infos_mod):
+                    return 'ajtr'
+
+                #1.3.2.SINON OPTION MODIFIER on modifie une entrée existante.
+                return 'mod'
+
+
+            #1.4.OPTION ÉCHANGER. car entr_mod_splt[1] est numérique. (#.#)
+            return 'echngr'
+
+
+        #1.2.VÉRIFIER si supprimer. Vérifier numérique sinon donne erreur next.
+        if entr_mod_splt[0].lower() == 'd' and entr_mod_splt[1].isnumeric():
+            return 'supprmr'
+
+
+    #2.ELSE, erreur.
+    return None
+
+
+#TODO créer liste des changements de mots (demander si on enregistre comme mots synonymes si
+#les infos non numériques changent.) Envoyer cette liste au dictionnaire.
+def mli_gerer_mod(entr_mod_splt, lst_infos_mod, type_lst):
+    """Gérer la modification demandée de la liste d'information selon le type de
+    liste à modifier (recette, liste d'épicerie ou profil par défaut.
+    *Liste d'épicerie - Pas de modification des épiceries.
+    *Profil par défaut - Pas de modification des entêtes.
+    
+
+    RETOURNE: lst_infos_mod ou 'Erreur'
+
+
+    @mod_lst_infos
+    """
+    #TODO GÉRER les exceptions.
+    #1.EXCEPTION LISTE D'ÉPICERIE
+    if type_lst == "la liste d'épicerie":
+        if entr_mod_splt[0] == 1:
+            return None
+
+
+    #3.SANS exception, modifier l'information.
+    lst_infos_mod[entr_mod_splt[0]] = lst_infos_mod[1]
+
+    return lst_infos_mod
+
+
+
+#TODO - et aussi ajouter dans le trie par défaut si liste d'épicerie ?
+def mli_gerer_echng(entr_mod_splt, lst_infos_mod, type_lst):
+    """Échanger la position de deux information
+    """
+    return
+    #Si index < 1, pas un ingrédient donc erreur.
+    #Aussi, nécessairement numérique vue le check précédent en 1.6.1.
+    #if index > 1:
+        #ÉCHANGER les positions de manière pythonesque! ;)
+        #(lst_infos_mod[index],
+         #lst_infos_mod[lst_modif[1]]) = (lst_infos_mod[lst_modif[1]],
+         #                                lst_infos_mod[index])
+        #continue
+
+
+#TODO
+def mli_gerer_supprmr(entr_mod_splt, lst_infos_mod, type_lst):
+    """Supprimer recete dans épicerie = supprimer tout ses ingr associé pls."""
+    #1.6.2.0.STR can input à la base.
+    #entr_mod_splt = int(lst_modif)
+    #1.6.2.1.SI 2<index<len(), l'entrée est valide.
+    #if 1<lst_modif[1]<=len(lst_infos_mod):
+     #   #1.6.2.2.SUPPRIMER de la liste.
+      #  lst_modif = lst_infos_mod.pop(lst_modif)
+    
+    return
+
+
+
+def mli_help():
+    """Fonction d'affichage d'aide pour la fonction mod_lst_infos
+
+
+    RETOURNE: None
+
+
+    @mod_lst_infos
+    """
+    print("\n\n\*À noter, il y a certaines exceptions selon le type de\
+liste d'information que vous désirez modifier (recette, liste d'épicerie ou profil \
+par défaut. Ces exceptions sont notées plus bas*\n\n\
  - Pour la modification d'information, le format est 'chiffre', \
 '.' et 'nouvelle information';\n\n\
-**(Pour ajouter un ingrédient, insérez un chiffre plus grand que le nombre \
-max actuel dans cette recette. Aussi, l'option indx1 = 1 est indisponible.')**\n\n\
+**(Pour ajouter une informartion, insérez un chiffre plus grand que le nombre \
+max disponible.**\n\n\
 Un exemple de format pour changer une information:\n\
 3.2 Broccolis\n\n\
 Ou encore:\n\
 0.Toasts au ketchup\n\n\n\
- - Pour l'échange d'emplacement des ingrédients dans la liste, inscrivez les numéros \
-associés aux deux ingrédients (donc >1), en format 'chiffre', '.' puis 'chiffre' comme par exemple:\n\
+ - Pour l'échange d'emplacement des informations dans la liste, inscrivez les numéros \
+associés aux deux informations, en format 'chiffre', '.' puis 'chiffre' comme par exemple:\n\
 3.4\n\
- - Pour 'deleter' une information, inscrivez 'd', '.', puis chiffre de l'index à enlever.n\n\n\
-Autrement,\n - 'v' permet de voir la liste avec les modifications effectuées,\n\n\n\
+ - Pour 'supprimer' une information, inscrivez 's', '.', puis 'chiffre'' de l'index à enlever.n\n\n\
+Autrement,\n - 'v' permet de voir la liste avec les modifications effectuées,\n\n\
  - 'c' permet de confirmer la liste actuel et de la partager ainsi.\n\n\
  - 'r' et 's' permettent de sortir de la boucle de modification d'une liste \
-d'information.\n")
+d'information.\n\n\n\
+*Liste d'épicerie - échange possible qu'avec les ingrédients, pas de modification d'épiceries;\n\
+Profil par défaut - échange possible qu'avec les épiceries, pas de modification des entêtes;\n\
+Recette - échange avec les indexs 0 et 1 impossible car sont les titres et le lien web, \
+on ne supprime pas les entêtes.\n\n")
 
-            continue
+    return None
 
-
-
-        #1.5.DIVISER l'input.
-        lst_modif = dmnde_actn.split('.')
-
-        #1.6
-        if len(lst_modif) > 1:
-            #1.6.1.SI modifié ou échanger (#.info ou #.#). 1 car cela change le lien web.
-            if lst_modif[0].isnumeric() and lst_modif[0] != 1:
-                #1.6.0.STR puisque input.
-                index = int(lst_modif[0])
-            
-
-                #1.6.1.1.OPTION MODIFICATION. (#.info)
-                if not lst_modif[1].isnumeric():
-                    #1.6.1.0.UN nombre > len() veut dire qu'on instaure une nouvelle info.
-                    if index > len(lst_infos_mod):
-                        lst_infos_mod += [lst_modif[1]]
-                        continue
-
-
-                    #TODO créer liste des changements de mots (demander si on enregistre comme mots synonymes si
-                    #les infos non numériques changent.) Envoyer cette liste au dictionnaire. ALSO if not index>len() donc else.
-                    #1.6.1.1.SINON on modifie une entrée existante.
-                    lst_infos_mod[index] = lst_modif[1]
-                    continue
-
-
-                #1.6.1.2.OPTION ÉCHANGE. (#.#) Si index < 1, pas un ingrédient donc erreur.
-                #Aussi, nécessairement numérique vue le check précédent en 1.6.1.
-                if index > 1:
-                    #ÉCHANGER les positions de manière pythonesque! ;)
-                    (lst_infos_mod[index],
-                     lst_infos_mod[lst_modif[1]]) = (lst_infos_mod[lst_modif[1]],
-                                                     lst_infos_mod[index])
-                    continue
-
-
-            #1.6.2.VÉRIFIER si deleter. Vérifier numérique sinon donne erreur next.
-            if lst_modif[0].lower() == 'd' and lst_modif[1].isnumeric():
-                #1.6.2.0.STR can input à la base.
-                lst_modif = int(lst_modif)
-                #1.6.2.1.SI 2<index<len(), l'entrée est valide.
-                if 1<lst_modif[1]<=len(lst_infos_mod):
-                    #1.6.2.2.SUPPRIMER de la liste.
-                    lst_modif = lst_infos_mod.pop(lst_modif)
-
-
-        #1.7.ELSE, l'entrée est invalide.
-        print('''Cette entrée est invalide. Écrivez "h" pour plus d'information sur
-les entrées de modifications de la recette.''')
-        continue    
 
 
 
@@ -382,15 +495,16 @@ def envyr_lst_epcr_csv(nm_fchr_epcr, df_infos_fnl):
 
 
 
-#TODO
+#TODO créer une fonction qui dicte un nom de profil acceptable (sans espace ou char spéciaux?)
 #%% Profil par défaut
 def chx_prfl_dft():
     """Aider l'utilisateur à choisir un profil par défaut.
 
 
-    RETOURNE: 's', 'n' ou 'nm_prfl_dft'
+    RETOURNE: 's', 'g' ou 'nm_prfl_dft'
 
 
+    @gere_si_prfl_exst_ou_non - iuf
     @affchr_epcr_et_chcks - iuf - Ingrédients épicerie
 
     """
@@ -405,28 +519,24 @@ def chx_prfl_dft():
 
     #3.DEMANDER changer de profil ou garder le même.
     txt_inpt = "Désirez-vous changer de profil par défaut (inscrire le nom exact) \
-ou (n)on ?\n\n*(Pour ajouter un profil par défaut, vous devrez sortir de cette partie \
-du programme et plutôt utiliser la partie 'Profil par defaut' du programme.)*\n\n\
-( nom_de_profil_par_défaut / n ) : "
-    #3.1.OBTENIR les contraintes.
+ou (g)arder l'actuel profil d'utilisateur?\n\
+( nom_de_profil_par_défaut / g ) : "
+    #3.1.OBTENIR les profils par défaut dispoinibles.
     lst_nm_prfls_dft = [prfl for prfl in df_prfls_dft]
     #3.2.FORCER l'entrée 
-    nm_prfl_dft= utl.boucle_frc_entr_lwrcs(txt_inpt, lst_nm_prfls_dft + ['n', 's'])
+    nm_prfl_dft= utl.boucle_frc_entr_lwrcs(txt_inpt, lst_nm_prfls_dft + ['g', 's'])
 
 
     #4.GÉRER réponse mod ou non le profil par défaut.
     #4.0.
-    if nm_prfl_dft in ['s', 'n']:
+    if nm_prfl_dft in ['s', 'g']:
         return nm_prfl_dft
 
 
-    #4.1.ELSE, modifier le profil par défaut.
-    mod_archv_prfls_dft_csv(['Profil_par_defaut_actuel', nm_prfl_dft])
-
-    #4.2.AFFICHER la bonne nouvelle.
+    #4.1.ELSE, modifier le profil par défaut utiliser.
     print(f'\n..Le profil par défaut est maintenant le profil : {nm_prfl_dft}\n')
     
-    #4.3.
+    #4.2.
     return nm_prfl_dft
 
 
@@ -450,56 +560,44 @@ def mod_archv_prfls_dft_csv(lst_info_mod_prfl_dft):
     df_prfls_dft = e_l.df_prfls_dft_csv()
 
 
-    #2.MODIFIER la liste obtenue en df.
+    #2.TRANSFORMER la liste obtenue en df.
     df_info_mod_prfl = pd.Dataframe(
         {nm_clnn_prfl_dft: lst_info_mod_prfl_dft[1:]}
         )
 
-    #2.1.OPTION CHANGEMENT DU PROFIL PAR DÉFAUT.
-    if nm_clnn_prfl_dft == 'Profil_par_defaut_actuel':
-        #2.1.1.ENLEVER la colonne par défaut pour ensuite la remplacer avec 'Merge'.
-        df_nouv_prfls_dft = pd.merge(
-            df_info_mod_prfl, df_prfls_dft.iloc[:, 1:], how='outer', left_index=True,
-            right_index=True
-        ).sort_index(axis=1)
+    #3.1.OPTION MODIFICATION D'UN PROFIL.
+    if nm_clnn_prfl_dft in df_prfls_dft:
+        #3.1.1.ENLEVER la colonne modifié pour ajouter la nouvelle par la suite.
+        df_prfls_dft = df_prfls_dft.drop(columns=nm_clnn_prfl_dft)
 
-
-    #2.2.0.ELSE permet d'écrire qu'un seul "merge" où la colonne de profil utilisé
-    #est gérée.
+    #3.2.OPTION NOUVEAU PROFIL par défaut (car nm_clmnn not in df).
     else:
-        #2.2.OPTION MODIFICATION D'UN PROFIL.
-        if nm_clnn_prfl_dft in df_prfls_dft:
-            #2.2.1.ENLEVER la colonne modifié pour ajouter la nouvelle par la suite.
-            df_clnn_drp = df_prfls_dft.drop(columns=nm_clnn_prfl_dft)
-
-        #2.3.OPTION NOUVEAU PROFIL par défaut est inclut ici.
-        #JOINDRE ET ORDONNÉE les profils sans avoir la colonne 'profil_par_defaut_actuel'.
-        df_mns_clnn_prfl_dft_actl = pd.merge(
-            df_clnn_drp.iloc[:, 1:], df_info_mod_prfl, how='outer', left_index=True,
-            right_index=True
-        ).sort_index(axis=1)
-
-        #JOINDRE le nouveau df des profils avec la première colonne habituelle.
-        df_nouv_prfls_dft = pd.merge(
-            df_clnn_drp.iloc[:, 0], df_mns_clnn_prfl_dft_actl, how='outer', left_index=True,
-            right_index=True
-        )
+        #2.3.1.CRÉER nouveau fichier 'ordre ingrédients par défaut'.
+        creer_nouv_ordr_triage_csv(lst_info_mod_prfl_dft)
 
 
-    #3.ENVOYER les modifications au .csv des profils par défaut.
-    envyr_mod_prfls_dft_csv(df_nouv_prfls_dft)
+    #4.JOINDRE ET ORDONNÉE les profils par défaut.
+    df_prfls_dft_mod = pd.merge(
+        df_prfls_dft, df_info_mod_prfl, how='outer', left_index=True,
+        right_index=True
+    ).sort_index(axis=1)
 
 
-    #4.AFFICHIER le succès.
+    #5.ENVOYER les modifications au .csv des profils par défaut.
+    envyr_mod_prfls_dft_csv(df_prfls_dft_mod)
+
+
+    #6.AFFICHIER le succès.
     print(f"Les profils par défaut sont mis-à-jour avec succès!!\nVoici les nouvelles \
-informations enregistrées:\n\n{df_nouv_prfls_dft}")
+informations enregistrées:\n\n{df_prfls_dft_mod}")
+
 
     return None
 
 
 
 
-def envyr_mod_prfls_dft_csv(df_infos_mod_prfl_dft):
+def envyr_mod_prfls_dft_csv(df_infos_mod_prfls_dft):
     """Envoyer la modification du profil par défaut au fichier .csv entreposer à
     cet effet.
 
@@ -511,10 +609,59 @@ def envyr_mod_prfls_dft_csv(df_infos_mod_prfl_dft):
 
     """
     #1.OBTENIR le chemin d'accès du .csv des profils par défaut.
-    prfls_dft_pth = utl.chmn_accs_prfls_dft()
+    prfls_dft_pth = f'{utl.chmn_accs_dir_prfls_dft()}\Profils_par_defaut.csv'
 
     #2.ENVOYER les modifications au .csv des profils par défaut.
-    df_infos_mod_prfl_dft.to_csv(prfls_dft_pth, sep=';', encoding='latin', index=False)
+    df_infos_mod_prfls_dft.to_csv(prfls_dft_pth, sep=';', encoding='latin', index=False)
 
     return None
+
+
+
+
+#%% Ordre des ingrédients
+#TODO
+def creer_nouv_ordr_triage_csv(lst_info_prfl_dft):
+    """Créer un nouveau fichier pour entreposer l'ordre de triage des ingrédients
+    dans une liste d'épicerie par défaut.
+    - lst_info_prfl_dft = [nm_prfl_df, epcr1, epcr2, etc]
+
+
+    RETOURNE: None
+
+
+    @mod_archv_prfls_dft_csv
+
+    """
+    #1.OBTENIR le chemin d'accès du dossier des profils par défaut
+    nouv_prfl_dft_pth = f'{utl.chmn_accs_dir_prfls_dft()}\{lst_info_prfl_dft[0]}\
+_ordr_tri_epcrs.csv'
+
+    #2.OBTENIR listes d'ordre déjà construites pour ces épiceries, si disponible.
+    #2.0.OBTENIR dictionnaire des profils par défauts.
+    dct_pfls_dft = e_l.dct_infos_prfls_dft_csv()
+
+    #TODO VÉRIFIER si ça c vraiment le meilleur move
+    #2.1.REGROUPER les profils ayant déjà ces listes.
+    dct_pfls_poss = {}
+    for epcr in lst_info_prfl_dft:
+        for prfl in dct_pfls_dft:
+            if epcr in dct_pfls_dft[prfl]:
+                dct_pfls_poss[epcr] = dct_pfls_poss.get(epcr, []) + [prfl] 
+
+    #TODO. 2.2.UTILISER ces ordres créées.
+    dct_epcr_ordrs = {}
+    #TODO read_csv_ordre
+    
+
+    #3.1.CRÉER df des entêtes par défaut de ce profil.
+    df_entts_tri_dft = pd.DataFrame()
+    for epcr in lst_info_prfl_dft[1:]:
+        df_entts_tri_dft[epcr] = []
+
+
+
+
+
+
 
