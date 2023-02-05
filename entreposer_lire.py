@@ -156,6 +156,16 @@ def df_lst_epcr(nm_lst_epcr):
 
 
 
+def splt_df_epcr_en_lst(df_lst_epcr):
+    """Diviser le dataframe de la liste d'épicerie afin de la modifier.
+    
+
+
+
+    """
+
+
+#TODO dlt? Wut iz diss
 def affchr_une_lst_epcr(nm_fchr_epcr):
     """Afficher la liste d'épicerie choisie.
     """

@@ -17,7 +17,42 @@ import pandas as pd
 
 
 #TODO les mli_gerer sont très à finaliser! Mais aussi où elles étaient doivent ajouter le "type_lst").
+#TODO LONG-TERME : Troubleshooting/debugging car erreurs très probables.
 #%% Modification d'une liste
+def prep_lst_epcr_pr_mli(nm_fchr_epcr):
+    """Préparer la liste d'épicerie pour la tâche ardueuse de la modifier manuellement
+    avec le programme.
+
+
+    RETOURNE: [[lst_infos], [lst_entts]]
+
+
+
+
+    """
+    #1.OBTENIR le df de la liste d'épicerie
+    df_lst_epcr = e_l.df_lst_epcr(nm_fchr_epcr)
+
+
+    #2.OBTENIR les entêtes de la liste d'épicerie
+    lst_entts_epcr = [entt for entt in df_lst_epcr]
+
+
+    #3.CRÉER la liste d'info unique de la liste d'épicerie avec les #indexs.
+    lst_lst_epcr = []
+    for entt in lst_entts_epcr:
+        lst_lst_epcr += [entt]
+        for info in df_lst_epcr[entt]:
+            if info:
+                lst_lst_epcr += [info]
+
+    #4.REVOYER [[lst_infos], [lst_entts]]
+    return lst_lst_epcr, lst_entts_epcr
+
+
+
+#TODO check l'option profil par défaut parce que chaque modif emporte des changements dans les .csv
+#et dans les noms de fichiers.
 def mod_lst_infos(lst_infos, type_lst):
     """Après avoir obtenu la liste d'information d'une recette:
         - Afficher les infos,
@@ -43,8 +78,7 @@ def mod_lst_infos(lst_infos, type_lst):
     #0.AFFICHER les informations avant la boucle.
     print("Voici les informations complètes pour {type_lst}':\n")
 
-    for indx, info in enumerate(lst_infos):
-        print(f'{indx} - {info}')
+    mli_affchr_sln_type_lst(lst_infos, type_lst)
 
     #1.BOUCLE MODIFIER cette liste d'information.
     cntnuer_cnfrmtn = True
@@ -73,11 +107,10 @@ def mod_lst_infos(lst_infos, type_lst):
 
         #1.2.(V)OIR la recette à jour.
         if dmnde_actn.lower() == 'v':
-            #AFFICHER la recette et redébutter la boucle while.
+            #1.2.0AFFICHER la recette et redébutter la boucle while.
             print(f'Voici les informations à jour pour {type_lst} :\n')
 
-            for indx, info in enumerate(lst_infos_mod):
-                print(f'{indx} - {info}')
+            mli_affchr_sln_type_lst(lst_infos, type_lst)
 
             continue
 
@@ -92,8 +125,7 @@ def mod_lst_infos(lst_infos, type_lst):
             #1.3.2.AFFICHER la liste d'épicerie à jour
             print('Voici les informations finales à envoyer:\n')
 
-            for indx, info in enumerate(lst_infos_mod):
-                print(f'{indx} - {info}')    
+            mli_affchr_sln_type_lst(lst_infos, f'{type_lst} finale')    
 
             #1.3.3.DEMANDER la confirmation de l'envoie
             inpt_txt = input("(C)onfirmez-vous cet envoie ou désirez-vous le \
@@ -131,13 +163,23 @@ def mod_lst_infos(lst_infos, type_lst):
         if len(entr_mod_splt) > 1:
             entr_mod_splt = entr_mod_splt[0] + '.'.join(entr_mod_splt[1:])
 
+        #2.0.2.INT pour les indexes, à gerer avant les multiples checks et utilisation.
+        for indx, entr in enumerate(entr_mod_splt):
+            if entr.isnumeric():
+                entr_mod_splt[indx] = int(entr)
+
         #2.0.2.TROUVER le type de modification choisie par l'utilisateur.
         type_mod = tri_si_mod_echngr_ou_supprmr(entr_mod_splt, lst_infos_mod)
 
 
         #2.1.OPTION AJOUTER une information (On ne peut qu'en ajouter une à la fin.)
         if type_mod == 'ajtr':
-            lst_infos_mod += [entr_mod_splt[1]]
+            #2.1.1.LISTE D'ÉPICERIE a un format différent que les autres.
+            if type_lst == "la liste d'épicerie":
+                lst_infos_mod[0] += [entr_mod_splt[1]]
+
+            else:
+                lst_infos_mod += [entr_mod_splt[1]]
 
 
         #2.2.OPTION MODIFIER une information.
@@ -172,6 +214,97 @@ d'information sur les entrées de modifications de la recette.")
 
 
 
+def mli_affchr_sln_type_lst(lst_infos, type_lst):
+    """Afficher une liste selon son type (liste d'épicerie est plus complexe
+    à modifier).
+    *type_lst = 'la recette', 'le profil par défaut', 'la liste d'épicerie'
+    *(suite): f'{type_lst} final'
+
+
+    RETOURNE: None (print lst_infos)
+
+
+    @mod_lst_infos
+
+    """
+    #1.OPTION LISTE D'ÉPICERIE, INITIALE ou FINALE
+    if "la liste d'épicerie" in type_lst:
+        df_infos_epcr_ac_indx = prep_mli_affchr_df_lst_epcr(lst_infos, type_lst)
+        print(df_infos_epcr_ac_indx.to_string(index=False, na_rep=''))
+
+
+    #3.OPTION RECETTE ou PROFIL PAR DÉFAUT, INITIAL OU FINAL!
+    else:
+        for x, info in enumerate(lst_infos):
+            print(f'{x} - {info}')
+
+
+    return None
+
+
+
+
+def prep_mli_affchr_df_lst_epcr(lst_infos, type_lst):
+    """Préparer la liste d'informations de la liste d'épicerie afin de l'afficher
+    sous forme df.
+    *lst_infos = [[lst_infos_epcr], [lst_entt_epcr]]
+
+    RETOURNE: df_lst_indxs_pls_infos
+
+
+    @mliaffchr_sln_type_lst
+
+    """
+    #1.0.PRÉPARER un dictionnaire pour print en df après.
+    dict_info_par_entt = {}
+
+    #1.1.LES entêtes se trouves dans lst_infos[1]. On assigne le 1er pour pouvoir
+    #ajouter "Optionnel pour ajouter" plus facilement
+    entt = lst_infos[1][0]
+
+    #1.2.CRÉER le dictionnaire avec les indexs associés aux modifications futures.
+    for indx, info in enumerate(lst_infos[0][1:]):
+        #1.2.1.SI c'est pas un entête, ajoute l'entrée d'emblée.
+        if info not in lst_infos[1][1]:
+            dict_info_par_entt[entt] = (dict_info_par_entt.get(entt, []) +
+                                        [f'{indx} - {info}']
+            )
+
+            #1.2.1.1.C'EST nice d'avoir un option 'ajtr' si c'est le fin dernier.
+            if info != lst_infos[0][-1]:
+                continue
+
+            #1.2.1.2.C'EST le dernier? Ajoute un indx de plus pour l'option 'ajtr'.
+            indx += 1
+
+        #1.2.2.SI l'info est un entt, changer la clef du dict et ajt l'option 'ajtr'.
+        #1.2.2.1.FAIRE seulement si pas l'affichage de la liste finale.
+        if type_lst == "la liste d'épicerie":
+            dict_info_par_entt[entt] = (dict_info_par_entt.get(entt, []) +
+                                        [f'  {indx} - Optionnel pour ajouter ingr']
+            )
+
+        #1.2.2.2. APRÈS avoir ajouté l'option 'ajtr', changer la clef.
+        entt = info
+
+
+    #2.CRÉER le dataframe de cette liste.
+    df_lst_epcr_indx = pd.DataFrame()
+    for entt in lst_infos[1]:
+        #2.1.CONSTRUIRE un df temporaire.
+        df = pd.DataFrame({entt: dict_info_par_entt.get(entt, [])})
+        #2.2.AJOUTER le df temp au df_lst_epcr
+        df_lst_epcr_indx = pd.merge(
+            df_lst_epcr_indx, df, how='outer', left_index=True, right_index=True
+        )
+
+
+    #3.RETOURNER le df avec les infos indexés.
+    return df_lst_epcr_indx
+
+
+
+
 def tri_si_mod_echngr_ou_supprmr(entr_mod_splt, lst_infos_mod):
     """Définir comment changer la liste à modifier, soit en modifiant une information,
     en ajoutant une, en supprimant un ou en échangeant deux de position.
@@ -185,15 +318,18 @@ def tri_si_mod_echngr_ou_supprmr(entr_mod_splt, lst_infos_mod):
     #1.SI il y a eu un split.
     if len(entr_mod_splt) > 1:
         #1.1.SI modifié ou échanger (#.info ou #.#).
-        if entr_mod_splt[0].isnumeric():
-            #1.2.STR puisque input.
-            index = int(entr_mod_splt[0])
-
+        if isinstance(entr_mod_splt[0], int):
             #1.3.(#.info)
             if not entr_mod_splt[1].isnumeric():
-                #1.3.1.OPTION AJOUTER UN nombre > len() veut dire qu'on instaure une nouvelle info.
-                if index > len(lst_infos_mod):
+
+                #1.3.0.LISTE D'ÉPICERIE a un format différent des autres type
+                if len(lst_infos_mod) == 2:
+                    lst_infos_mod = lst_infos_mod[0]
+
+                #1.3.1.OPTION AJOUTER UN nombre > len() veut dire qu'on instaure une nouvelle info.                
+                if entr_mod_splt > len(lst_infos_mod):
                     return 'ajtr'
+
 
                 #1.3.2.SINON OPTION MODIFIER on modifie une entrée existante.
                 return 'mod'
@@ -213,27 +349,46 @@ def tri_si_mod_echngr_ou_supprmr(entr_mod_splt, lst_infos_mod):
 
 
 #TODO créer liste des changements de mots (demander si on enregistre comme mots synonymes si
-#les infos non numériques changent.) Envoyer cette liste au dictionnaire.
+#les infos non numériques changent.) Envoyer cette liste au dictionnaire de l'archive.
 def mli_gerer_mod(entr_mod_splt, lst_infos_mod, type_lst):
     """Gérer la modification demandée de la liste d'information selon le type de
     liste à modifier (recette, liste d'épicerie ou profil par défaut.
-    *Liste d'épicerie - Pas de modification des épiceries.
+    *Liste d'épicerie - Pas de modification des recettes ou des entêtes.
     *Profil par défaut - Pas de modification des entêtes.
     
 
-    RETOURNE: lst_infos_mod ou 'Erreur'
+    RETOURNE: lst_infos_mod ou 'continuer'
 
 
     @mod_lst_infos
+
     """
-    #TODO GÉRER les exceptions.
     #1.EXCEPTION LISTE D'ÉPICERIE
     if type_lst == "la liste d'épicerie":
-        if entr_mod_splt[0] == 1:
-            return None
+        #1.1.ERREUR si mod recettes, donc indx < len(clnn_rctts).
+        if entr_mod_splt[0] < len(lst_infos_mod[0].find(lst_infos_mod[1][1])):
+            print(f"L'option '{entr_mod_splt[0]} - {lst_infos_mod[0][entr_mod_splt[0]]}' \
+n'est pas valide car elle est une recette. Voir l'option 'h' pour plus d'information sur les \
+modifications.")
+            return 'continuer'
 
 
-    #3.SANS exception, modifier l'information.
+        #1.2.AJOUTER si l'indx de changement est une entt, au lieu de remplacer.
+        if lst_infos_mod[0][entr_mod_splt[0]] in lst_infos_mod[1]:
+            lst_infos_mod[0].insert(entr_mod_splt[0], entr_mod_splt[1])
+
+            #1.2.0.RETOURNER la liste avec l'ajout.
+            return lst_infos_mod
+
+
+        #TODO ajtr/prpsr d'ajouter au dictionnaire archivé des synonymes.
+        #1.3.MODIFIER à l'index.
+        lst_infos_mod[0][entr_mod_splt[0]] = entr_mod_splt[1]
+        return lst_infos_mod
+
+
+    #TODO si recette, demande si ajt au dictionnaire archivé des sysnonymes.
+    #3.RECETTES aussi sans exception, on peut tout y modifier.
     lst_infos_mod[entr_mod_splt[0]] = lst_infos_mod[1]
 
     return lst_infos_mod
@@ -255,6 +410,7 @@ def mli_gerer_echng(entr_mod_splt, lst_infos_mod, type_lst):
         #continue
 
 
+
 #TODO
 def mli_gerer_supprmr(entr_mod_splt, lst_infos_mod, type_lst):
     """Supprimer recete dans épicerie = supprimer tout ses ingr associé pls."""
@@ -266,6 +422,7 @@ def mli_gerer_supprmr(entr_mod_splt, lst_infos_mod, type_lst):
       #  lst_modif = lst_infos_mod.pop(lst_modif)
     
     return
+
 
 
 
@@ -457,18 +614,6 @@ d'aujourd'hui ?\n")
     envyr_lst_epcr_csv(nm_fchr_epcr, df_clnns_dft)
 
     return nm_fchr_epcr
-
-
-
-#TODO
-def mod_lst_epcr(nm_fchr_epcr, df_infos):
-    """Gérer la modification de la liste d'épicerie déjà créée
-
-    """
-    
-    
-
-    return
 
 
 
