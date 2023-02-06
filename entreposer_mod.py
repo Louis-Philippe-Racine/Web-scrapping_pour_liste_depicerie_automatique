@@ -16,8 +16,8 @@ import utilitaire as utl
 import pandas as pd
 
 
-#TODO les mli_gerer sont très à finaliser! Mais aussi où elles étaient doivent ajouter le "type_lst").
-#TODO LONG-TERME : Troubleshooting/debugging car erreurs très probables.
+
+#TODO faire premier troubleshooting.
 #%% Modification d'une liste
 def prep_lst_epcr_pr_mli(nm_fchr_epcr):
     """Préparer la liste d'épicerie pour la tâche ardueuse de la modifier manuellement
@@ -87,10 +87,11 @@ def mod_lst_infos(lst_infos, type_lst):
         #0.1.DEMANDER si OK ou modifier les infos.
         dmnde_actn = input("""Désirez-vous:
  - (c)onfirmer ces informations;
- - (r)ecommencer le processus avec une autre liste d'info;
+ - (r)ecommencer le processus avec une autre liste d'information;
  - Modifier une de ces informations (#.nouvelleinfo);
  - Échanger le rang de ces informations dans la liste (#info1.#info2)
  - Supprimer une information (s.#info) ou
+ - (v)oir la recette avec ses informations à jour.
  - (h)elp.
 ( #.nouvelleinfo / #info1.#info2 / a / r / d.#info / h ) : """) 
 
@@ -290,9 +291,9 @@ def prep_mli_affchr_df_lst_epcr(lst_infos, type_lst):
 
     #2.CRÉER le dataframe de cette liste.
     df_lst_epcr_indx = pd.DataFrame()
-    for entt in lst_infos[1]:
+    for entts in lst_infos[1]:
         #2.1.CONSTRUIRE un df temporaire.
-        df = pd.DataFrame({entt: dict_info_par_entt.get(entt, [])})
+        df = pd.DataFrame({entts: dict_info_par_entt.get(entts, [])})
         #2.2.AJOUTER le df temp au df_lst_epcr
         df_lst_epcr_indx = pd.merge(
             df_lst_epcr_indx, df, how='outer', left_index=True, right_index=True
@@ -340,7 +341,7 @@ def tri_si_mod_echngr_ou_supprmr(entr_mod_splt, lst_infos_mod):
 
 
         #1.2.VÉRIFIER si supprimer. Vérifier numérique sinon donne erreur next.
-        if entr_mod_splt[0].lower() == 'd' and entr_mod_splt[1].isnumeric():
+        if entr_mod_splt[0].lower() == 's' and entr_mod_splt[1].isnumeric():
             return 'supprmr'
 
 
@@ -354,10 +355,9 @@ def mli_gerer_mod(entr_mod_splt, lst_infos_mod, type_lst):
     """Gérer la modification demandée de la liste d'information selon le type de
     liste à modifier (recette, liste d'épicerie ou profil par défaut.
     *Liste d'épicerie - Pas de modification des recettes ou des entêtes.
-    *Profil par défaut - Pas de modification des entêtes.
     
 
-    RETOURNE: lst_infos_mod ou 'continuer'
+    RETOURNE: lst_infos_mod
 
 
     @mod_lst_infos
@@ -369,8 +369,9 @@ def mli_gerer_mod(entr_mod_splt, lst_infos_mod, type_lst):
         if entr_mod_splt[0] < len(lst_infos_mod[0].find(lst_infos_mod[1][1])):
             print(f"L'option '{entr_mod_splt[0]} - {lst_infos_mod[0][entr_mod_splt[0]]}' \
 n'est pas valide car elle est une recette. Voir l'option 'h' pour plus d'information sur les \
-modifications.")
-            return 'continuer'
+modifications.\n")
+            #ERREUR, retourner la même liste, mli annoncera gèrera l'erreur.
+            return lst_infos_mod
 
 
         #1.2.AJOUTER si l'indx de changement est une entt, au lieu de remplacer.
@@ -391,37 +392,120 @@ modifications.")
     #3.RECETTES aussi sans exception, on peut tout y modifier.
     lst_infos_mod[entr_mod_splt[0]] = lst_infos_mod[1]
 
+
+    return lst_infos_mod
+
+
+#TODO VALIDER la portion "Profil par défaut".
+#TODO - et aussi ajouter dans le trie par défaut si liste d'épicerie ?
+def mli_gerer_echng(entr_mod_splt, lst_infos_mod, type_lst):
+    """Échanger la position de deux informations dans la liste.
+    - Recette: Échanger des ingrédients seulement
+    - Profil par défaut: Échanger que des épiceries.
+    - Liste d'épicerie: Échanger des ingrédients et des épiceries
+
+
+    RETOURNE: lst_infos_mod
+
+
+    @mod_lst_infos
+
+    """
+    #1.OPTION LISTE D'ÉPICERIE.
+    if type_lst == "la liste d'épicerie":
+        #1.0.OBTENIR les indexs des entêtes.
+        indx_entts = [lst_infos_mod[0].find(entt) for entt in lst_infos_mod[1]]
+
+        #1.1.VÉRIFIER si échange d'entêtes ou non.
+        if entr_mod_splt[0] in indx_entts or entr_mod_splt[1] in indx_entts:
+
+            #TODO voulez-vous changer les entts par défaut?
+            #1.1.1.SI les deux sont des entêtes, c'est valide.
+            if entr_mod_splt[0] in indx_entts and entr_mod_splt[1] in indx_entts:
+                #1.1.2.ÉCHANGER les positions de manière pythonesque! ;)
+                (lst_infos_mod[0][entr_mod_splt[0]],
+                 lst_infos_mod[0][entr_mod_splt[1]]) = (lst_infos_mod[0][entr_mod_splt[1]],
+                                                        lst_infos_mod[0][entr_mod_splt[0]]
+                )
+            #1.1.3.RETOURNER la liste - sans mod si 1 seul entt, avec mod si 2 entts.
+            return lst_infos_mod
+
+        #TODO proposer d'ajouter ça dans le triage automatique.
+        #1.2.VALIDE si après 1ère épicerie et avant le dernier ingrédient.
+        if (indx_entts[2]<entr_mod_splt[0]<len(lst_infos_mod) or
+            indx_entts[2]<entr_mod_splt[1]<len(lst_infos_mod)
+            ):
+            #1.2.1.ÉCHANGER les positions de manière pythonesque! ;)
+            (lst_infos_mod[0][entr_mod_splt[0]],
+             lst_infos_mod[0][entr_mod_splt[1]]) = (lst_infos_mod[0][entr_mod_splt[1]],
+                                                    lst_infos_mod[0][entr_mod_splt[0]]
+            )
+        #1.2.2.RETOURNER la liste - sans mod si 1 seul entt, avec mod si 2 entts.
+        return lst_infos_mod
+                                                        
+
+    #2.OPTION PROFIL PAR DÉFAUT ou RECETTE
+    #2.1.CAS VALIDE:
+    if 2<entr_mod_splt[0]<len(lst_infos_mod) or 2<entr_mod_splt[1]<len(lst_infos_mod):
+        #2.1.ÉCHANGER les positions de manière pythonesque! ;)
+        (lst_infos_mod[entr_mod_splt[0]],
+         lst_infos_mod[entr_mod_splt[1]]) = (lst_infos_mod[entr_mod_splt[1]],
+                                             lst_infos_mod[entr_mod_splt[0]]
+        )
+
+    #2.2.RETOURNER la liste modifiée ou non.
     return lst_infos_mod
 
 
 
-#TODO - et aussi ajouter dans le trie par défaut si liste d'épicerie ?
-def mli_gerer_echng(entr_mod_splt, lst_infos_mod, type_lst):
-    """Échanger la position de deux information
-    """
-    return
-    #Si index < 1, pas un ingrédient donc erreur.
-    #Aussi, nécessairement numérique vue le check précédent en 1.6.1.
-    #if index > 1:
-        #ÉCHANGER les positions de manière pythonesque! ;)
-        #(lst_infos_mod[index],
-         #lst_infos_mod[lst_modif[1]]) = (lst_infos_mod[lst_modif[1]],
-         #                                lst_infos_mod[index])
-        #continue
 
-
-
-#TODO
 def mli_gerer_supprmr(entr_mod_splt, lst_infos_mod, type_lst):
-    """Supprimer recete dans épicerie = supprimer tout ses ingr associé pls."""
-    #1.6.2.0.STR can input à la base.
-    #entr_mod_splt = int(lst_modif)
-    #1.6.2.1.SI 2<index<len(), l'entrée est valide.
-    #if 1<lst_modif[1]<=len(lst_infos_mod):
-     #   #1.6.2.2.SUPPRIMER de la liste.
-      #  lst_modif = lst_infos_mod.pop(lst_modif)
+    """Supprimer l'information à l'index choisi.
+    - On ne peut supprimer les entêtes.
+    - On ne peut supprimer le lien web de la recette ou la première épicerie d'un Profil.
+    *Supprimer recette dans épicerie = supprimer tout ses ingrs associés.
+
+
+    RETOURNE: list_infos_mod
+
+
+    @mod_lst_infos
+
+    """
+    #1.OPTION LISTE D'ÉPICERIE.
+    if type_lst == "la liste d'épicerie":
+        #1.0.VÉRIFIER si l'index est dans la liste.
+        if entr_mod_splt[1] >= len(lst_infos_mod[0]):
+            #1.0.1.ERREUR, retourner la même liste.
+            return lst_infos_mod
+
+
+        #1.1.SINON, TROUVER les indices des entêtes.
+        indx_entts = [lst_infos_mod[0].find(entt) for entt in lst_infos_mod[1]]
+        #1.2.SI ENTÊTES, il y a erreur, retourner la même liste.
+        if (entr_mod_splt[1] in indx_entts or
+            indx_entts[1]<entr_mod_splt[1]<indx_entts[2]
+            ):
+            return lst_infos_mod
+
+
+        #TODO 1.3.SI on supprime une recette, on offre d'enlever tous ces ingrédients.
+        if entr_mod_splt < indx_entts[1]:
+            pass
+
+
+        #1.3.SUPPRIMER l'information à l'indice choisie.
+        lst_infos_mod[0].pop(entr_mod_splt[1])
+        return lst_infos_mod
+
+
+    #TODO valider Profil par défaut après le finaliser.
+    #2.OPTION RECETTE ou PROFIL PAR DÉFAUT.
+    if 2 < entr_mod_splt[1] < len(lst_infos_mod):
+        #VALIDE, pas supprimer d'entête, de lw pour une rctt et la 1ere epcr.
+        lst_infos_mod.pop(entr_mod_splt[1])
     
-    return
+    return lst_infos_mod
 
 
 
@@ -763,7 +847,9 @@ def envyr_mod_prfls_dft_csv(df_infos_mod_prfls_dft):
 
 
 
-
+#TODO quand on trie automatique, on a la liste d'épicerie avec les ingrédients connus/triés
+#à côté, on a la liste d'ingrédient non trié avec ses propres index. on pourrait intégrer dans mod_lst_info j'crois.
+#avec un ttp de travail =P Je t'aime.
 #%% Ordre des ingrédients
 #TODO
 def creer_nouv_ordr_triage_csv(lst_info_prfl_dft):
